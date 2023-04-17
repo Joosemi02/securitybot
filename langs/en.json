@@ -1,0 +1,9 @@
+{
+    "language_info": {
+        "name": "English",
+        "emoji": ":flag_us:"
+    },
+    "command_fail": {
+        "no_perms": "You don't have permissions to use this command, only admins can use it."
+    }
+}
