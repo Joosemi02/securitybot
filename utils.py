@@ -2,7 +2,7 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 
-from constants import ADMINS
+from constants import ADMINS, EMBED_COLOR
 from db import db
 
 
@@ -14,7 +14,9 @@ class MyBot(commands.Bot):
 
 # TRANSLATIONS
 async def _T(
-    object_: discord.Interaction | commands.Context | discord.Guild | int, key: str
+    object_: discord.Interaction | commands.Context | discord.Guild | int,
+    key: str,
+    **kwargs
 ) -> str:
     guild_id = get_guild_id(object_)
     lang = await db.get_guild_lang(guild_id)
@@ -22,8 +24,8 @@ async def _T(
     keys = key.split(".")
     value = db.translations[lang]
     for k in keys:
-        value = value[k]
-    return value
+        value: dict | str = value[k]
+    return value.format(**kwargs)
 
 
 def get_guild_id(object_):
@@ -38,6 +40,10 @@ def get_guild_id(object_):
 # FORMAT
 def embed_fail(message: str) -> discord.Embed:
     return discord.Embed(description=message, color=discord.Color.red())
+
+
+def embed_success(message: str) -> discord.Embed:
+    return discord.Embed(description=message, color=EMBED_COLOR)
 
 
 # CHECKS
