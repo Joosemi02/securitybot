@@ -4,19 +4,16 @@ from constants import DEFAULT_GUILD_SETTINGS, MONGODB_CONNECTION_STR
 
 
 class Database:
-    def __init__(self, url):
+    async def __init__(self, url):
         db = motor_tornado.MotorClient(url)["security"]
         self.guilds = db.guilds
 
-        self.guilds_cache = {}
+        prefs = self.guilds.find({})
+        self.guilds_cache = {
+            d["_id"]: {k: v for k, v in d.items() if k != "_id"} async for d in prefs
+        }
 
-    async def get_guild_lang(self, guild_id: int):
-        if guild_id not in self.guilds_cache:
-            prefs = await self.guilds.find_one({"_id": guild_id})
-            if prefs is not None:
-                self.guilds_cache[guild_id] = prefs
-            else:
-                self.guilds_cache[guild_id] = await self.set_default_prefs(guild_id)
+    def get_guild_lang(self, guild_id: int):
         return self.guilds_cache[guild_id]["lang"]
 
     async def set_default_prefs(self, guild_id: int):
