@@ -6,3 +6,5 @@ TOKEN = ""
 ADMINS = []
 
 EMBED_COLOR = 0x000
+
+DEFAULT_GUILD_SETTINGS = {"lang": "en"}
