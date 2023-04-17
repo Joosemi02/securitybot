@@ -20,6 +20,7 @@ class Database:
         settings = DEFAULT_GUILD_SETTINGS.copy()
         settings["_id"] = guild_id
         await self.guilds.insert_one(settings)
+        self.guilds_cache[guild_id] = settings
         return settings
 
     async def set_guild_data(self, guild_id, field, value):
