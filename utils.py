@@ -1,6 +1,9 @@
+from datetime import datetime
+
 import discord
 from discord import Interaction
 from discord.ext import commands
+from discord.utils import format_dt
 
 from constants import ADMINS, EMBED_COLOR
 from db import db
@@ -24,7 +27,7 @@ class MyBot(commands.Bot):
 async def _T(
     object_: discord.Interaction | commands.Context | discord.Guild | int,
     key: str,
-    **kwargs
+    **kwargs,
 ) -> str:
     guild_id = get_guild_id(object_)
     lang = await db.get_guild_lang(guild_id)
@@ -43,6 +46,18 @@ def get_guild_id(object_):
         return object_.id
     else:
         return object_
+
+
+# LOG
+async def log(i: Interaction, msg: str):
+    if channel := db.guilds_cache[i.guild_id]["logs"]:
+        log_embed = discord.Embed(description=msg)
+        log_embed.add_field(
+            name="Author",
+            value=f"{i.user.name}#{i.user.discriminator}\nID: ``{i.user.id}``",
+        )
+        log_embed.set_footer(text=format_dt(datetime.now()))
+        await channel.send(log_embed)
 
 
 # FORMAT
@@ -66,6 +81,6 @@ def is_admin(object_: Interaction | commands.Context):
 
 def is_mod(i: discord.Interaction):
     return (
-        any(role.id in db.guilds_cache[i.guild]["roles"] for role in i.user.roles)
+        any(role.id in db.guilds_cache[i.guild_id]["roles"] for role in i.user.roles)
         or i.user.guild_permissions.administrator
     )
