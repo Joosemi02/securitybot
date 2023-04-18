@@ -7,4 +7,4 @@ ADMINS = []
 
 EMBED_COLOR = 0x000
 
-DEFAULT_GUILD_SETTINGS = {"lang": "en"}
+DEFAULT_GUILD_SETTINGS = {"lang": "en", "logs": 0, "roles": []}
