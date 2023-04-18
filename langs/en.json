@@ -10,6 +10,7 @@
     },
     "moderation": {
         "kick": "{member} was kicked from the server {reason}",
-        "ban": "{member} was banned from the server {reason}"
+        "ban": "{member} was banned from the server {reason}",
+        "mute": "{member} was muted for {mutetime} {reason}"
     }
 }
