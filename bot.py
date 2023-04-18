@@ -31,7 +31,7 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.CheckFailure):
-        embed = embed_fail(_T(ctx, "command_fail.no_perms"))
+        embed = embed_fail(_T(ctx, "command_fail.no_admin"))
         await ctx.reply(
             embed=embed,
             delete_after=5,

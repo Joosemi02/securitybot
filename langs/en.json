@@ -4,8 +4,11 @@
         "emoji": ":flag_us:"
     },
     "command_fail": {
-        "no_perms": "You don't have permissions to use this command, only admins can use it.",
+        "no_admin": "You don't have permissions to use this command, only admins can use it.",
+        "no_mod": "Only server admins and moderation roles can use this command.",
         "forbidden": "I don't have permissions to manage this member. Make sure my role is at the top of the role list to avoid this."
     },
-    "moderation": {"kick": "{member} was kicked from the server ✅"}
+    "moderation": {
+        "kick": "{member} was kicked from the server ✅"
+    }
 }
