@@ -65,4 +65,7 @@ def is_admin(object_: Interaction | commands.Context):
 
 
 def is_mod(i: discord.Interaction):
-    return any(role.id in db.guilds_cache[i.guild]["roles"] for role in i.user.roles)
+    return (
+        any(role.id in db.guilds_cache[i.guild]["roles"] for role in i.user.roles)
+        or i.user.guild_permissions.administrator
+    )
