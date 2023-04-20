@@ -41,8 +41,8 @@
     },
     "warnings": {
         "punish": "{member} was warned for {reason}",
-        "no_warns": "No warnings found 👏",
         "display": {
+            "no_warns": "No warnings found 👏",
             "not_my_warns": "This is not your warning log.",
             "title": "Warnings",
             "reason": "Reason",

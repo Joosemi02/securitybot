@@ -43,7 +43,7 @@ class Paginator:
 
     def _build_embed(self):
         embed = Embed(
-            description="" if self.warns else _T(self.i, "warnings.no_warns"),
+            description="" if self.warns else _T(self.i, "warnings.display.no_warns"),
             color=EMBED_COLOR,
         )
         for num, dict_ in self.warns.items():
@@ -54,7 +54,9 @@ class Paginator:
                 value=f"{reason}\n{date}",
                 inline=False,
             )
-        embed.set_footer(text=f"{_T(self.i, 'warnings.display.page')} {self.page}/{self.total_pages}")
+        embed.set_footer(
+            text=f"{_T(self.i, 'warnings.display.page')} {self.page}/{self.total_pages}"
+        )
         embed.set_author(
             name=f"{_T(self.i, 'warnings.display.title')} {self.i.user.name}",
             icon_url=self.i.user.display_avatar.url,
@@ -174,12 +176,6 @@ class Warnings(commands.Cog):
         await i.response.defer()
         warns = db.warns.find_one({"_id": member.id})
         del warns["_id"]
-        embed = Embed(title=_T(i, "warnings.display.title"), color=EMBED_COLOR)
-        embed.set_author(name=member.name)
-        if warns is None:
-            embed.description = _T(i, "warnings.no_warns")
-        else:
-            embed = self._build_warns_embed(embed, warns)
 
         paginator = Paginator(interaction=i, warnings=warns)
         await paginator.send_message(i)
@@ -189,9 +185,10 @@ class Warnings(commands.Cog):
     async def warnings(self, i: Interaction):
         await i.response.defer()
         warns = db.warns.find_one({"_id": i.user.id})
-        embed = Embed(title=_T(i, "warnings.display.title"), color=EMBED_COLOR)
-        embed.set_author(name=i.user.name)
-        await i.followup.send(embed=embed)
+        del warns["_id"]
+
+        paginator = Paginator(interaction=i, warnings=warns)
+        await paginator.send_message(i)
 
 
 async def setup(bot):
