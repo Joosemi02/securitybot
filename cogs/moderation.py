@@ -124,7 +124,7 @@ class Moderation(commands.Cog):
     async def userinfo(self, i: Interaction, member: Member):
         await i.response.defer()
         embed = Embed(color=EMBED_COLOR)
-        embed.set_thumbnail(url=member.avatar.url if member.avatar else "")
+        embed.set_thumbnail(url=member.display_avatar.url)
         embed.set_author(name=member)
 
         embed.add_field(name=_T(i, "moderation.userinfo.user_id"), value=member.id)
