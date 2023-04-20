@@ -10,17 +10,9 @@ from db import db
 
 
 # CLASSES
-class MyTree(discord.app_commands.CommandTree):
-    async def interaction_check(self, i: Interaction) -> bool:
-        if bool(i.guild):
-            return True
-        await i.response.send_message("You can only use commands in servers.")
-        return False
-
-
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, tree_cls=MyTree)
+        super().__init__(*args, **kwargs)
 
 
 # TRANSLATIONS
@@ -77,10 +69,3 @@ def is_admin(object_: Interaction | commands.Context):
     elif isinstance(object_, commands.Context):
         ctx = object_
         return ctx.author.id in ADMINS
-
-
-def is_mod(i: discord.Interaction):
-    return (
-        any(role.id in db.guilds_cache[i.guild_id]["roles"] for role in i.user.roles)
-        or i.user.guild_permissions.administrator
-    )

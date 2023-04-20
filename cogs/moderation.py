@@ -6,7 +6,7 @@ from discord.app_commands import Choice
 from discord.errors import Forbidden
 from discord.ext import commands
 
-from utils import _T, embed_fail, embed_success, is_mod, log
+from utils import _T, embed_fail, embed_success, log
 
 
 class Moderation(commands.Cog):
@@ -18,7 +18,8 @@ class Moderation(commands.Cog):
         print(f"{self.bot.user.name}: Moderation extension loaded successfully.")
 
     @app_commands.command()
-    @app_commands.check(is_mod)
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
     async def kick(self, i: Interaction, member: discord.Member, reason: str = None):
         await i.response.defer()
         try:
@@ -37,7 +38,8 @@ class Moderation(commands.Cog):
         await log(i, punishment_msg)
 
     @app_commands.command()
-    @app_commands.check(is_mod)
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
     async def ban(self, i: Interaction, member: discord.Member, reason: str = None):
         await i.response.defer()
         try:
@@ -56,7 +58,8 @@ class Moderation(commands.Cog):
         await log(i, punishment_msg)
 
     @app_commands.command()
-    @app_commands.check(is_mod)
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
     @app_commands.choices(
         time=[
             Choice(name="60 secs", value=60),
