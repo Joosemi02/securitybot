@@ -6,13 +6,13 @@
     "command_fail": {
         "no_admin": "You don't have permissions to use this command, only admins can use it.",
         "no_mod": "Only server admins and moderation roles can use this command.",
-        "forbidden": "I don't have permissions to manage this member. Make sure my role is at the top of the role list to avoid this."
+        "forbidden": "I don't have enough permissions to do this."
     },
     "moderation": {
-        "kick": "{member} was kicked from the server {reason}",
-        "ban": "{member} was banned from the server {reason}",
-        "mute": "{member} was muted for {mutetime} {reason}",
-        "clear": "{amount} messages were cleared in {channel}",
+        "kick": "{member} was kicked from the server {reason}.",
+        "ban": "{member} was banned from the server {reason}.",
+        "mute": "{member} was muted for {mutetime} {reason}.",
+        "clear": "{amount} messages were cleared in {channel}.",
         "userinfo": {
             "user_id": "User ID",
             "nick": "Nick",
@@ -35,6 +35,7 @@
             "roles": "Number of roles",
             "emojis": "Number of emojis",
             "created_at": "Created At"
-        }
+        },
+        "slowmode": "{channel} slowmode set to {time} seconds."
     }
 }

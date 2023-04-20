@@ -128,20 +128,24 @@ class Moderation(commands.Cog):
         embed.set_thumbnail(url=member.avatar.url if member.avatar else "")
         embed.set_author(name=member)
 
-        embed.add_field(name=_T("moderation.userinfo.user_id"), value=member.id)
-        embed.add_field(name=_T("moderation.userinfo.nick"), value=member.display_name)
-        embed.add_field(name=_T("moderation.userinfo.status"), value=member.status)
+        embed.add_field(name=_T(i, "moderation.userinfo.user_id"), value=member.id)
+        embed.add_field(
+            name=_T(i, "moderation.userinfo.nick"), value=member.display_name
+        )
+        embed.add_field(name=_T(i, "moderation.userinfo.status"), value=member.status)
 
-        embed.add_field(name=_T("moderation.userinfo.voice"), value=member.voice)
-        embed.add_field(name=_T("moderation.userinfo.game"), value=member.activity)
-        embed.add_field(name=_T("moderation.userinfo.toprole"), value=member.top_role)
+        embed.add_field(name=_T(i, "moderation.userinfo.voice"), value=member.voice)
+        embed.add_field(name=_T(i, "moderation.userinfo.game"), value=member.activity)
+        embed.add_field(
+            name=_T(i, "moderation.userinfo.toprole"), value=member.top_role
+        )
 
         embed.add_field(
-            name=_T("moderation.userinfo.created_at"),
+            name=_T(i, "moderation.userinfo.created_at"),
             value=member.created_at.__format__("%A, %d. %B %Y @ %H:%M:%S"),
         )
         embed.add_field(
-            name=_T("moderation.userinfo.joined_at"),
+            name=_T(i, "moderation.userinfo.joined_at"),
             value=member.joined_at.__format__("%A, %d. %B %Y @ %H:%M:%S"),
         )
 
@@ -155,36 +159,59 @@ class Moderation(commands.Cog):
         server = i.guild
         embed = discord.Embed(title="serverinfo", color=EMBED_COLOR)
         embed.set_thumbnail(url=server.icon.url if server.icon else "")
-        embed.set_footer(text=f"{_T('moderation.serverinfo.server_id')}: {server.id}")
+        embed.set_footer(
+            text=f"{_T(i, 'moderation.serverinfo.server_id')}: {server.id}"
+        )
 
-        embed.add_field(name=_T("moderation.serverinfo.name"), value=server.name)
-        embed.add_field(name=_T("moderation.serverinfo.owner"), value=server.owner)
+        embed.add_field(name=_T(i, "moderation.serverinfo.name"), value=server.name)
+        embed.add_field(name=_T(i, "moderation.serverinfo.owner"), value=server.owner)
         embed.add_field(
-            name=_T("moderation.serverinfo.members"), value=server.member_count
+            name=_T(i, "moderation.serverinfo.members"), value=server.member_count
         )
 
         online = len([m for m in server.members if m.status.online])
         channels = len(server.text_channels)
-        embed.add_field(name=_T("moderation.serverinfo.online"), value=str(online))
-        embed.add_field(name=_T("moderation.serverinfo.channels"), value=str(channels))
+        embed.add_field(name=_T(i, "moderation.serverinfo.online"), value=str(online))
         embed.add_field(
-            name=_T("moderation.serverinfo.region"), value=server.preferred_locale.name
+            name=_T(i, "moderation.serverinfo.channels"), value=str(channels)
+        )
+        embed.add_field(
+            name=_T(i, "moderation.serverinfo.region"),
+            value=server.preferred_locale.name,
         )
 
         roles = len(server.roles)
         emojis = len(server.emojis)
         embed.add_field(
-            name=_T("moderation.serverinfo.toprole"), value=server.roles[-1]
+            name=_T(i, "moderation.serverinfo.toprole"), value=server.roles[-1]
         )
-        embed.add_field(_T("moderation.serverinfo.roles"), value=str(roles))
-        embed.add_field(name=_T("moderation.serverinfo.emojis"), value=str(emojis))
+        embed.add_field(_T(i, "moderation.serverinfo.roles"), value=str(roles))
+        embed.add_field(name=_T(i, "moderation.serverinfo.emojis"), value=str(emojis))
 
         embed.add_field(
-            name=_T("moderation.serverinfo.created_at"),
+            name=_T(i, "moderation.serverinfo.created_at"),
             value=server.created_at.__format__("%A, %d. %B %Y @ %H:%M:%S"),
         )
 
         await i.followup.send(embed=embed)
+
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    @app_commands.describe(time="Slowmode time in seconds")
+    async def slowmode(self, i: Interaction, channel: discord.TextChannel, time: int):
+        await i.response.defer()
+        try:
+            await channel.edit(slowmode_delay=time)
+        except Forbidden:
+            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+
+        punishment_msg = _T(
+            i, "moderation.slowmode", channel=i.channel.mention, time=time
+        )
+
+        await i.followup.send(embed_success(punishment_msg))
+        await log(i, punishment_msg)
 
 
 async def setup(bot):

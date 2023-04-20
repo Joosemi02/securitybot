@@ -5,7 +5,7 @@ from discord import Interaction
 from discord.ext import commands
 from discord.utils import format_dt
 
-from constants import ADMINS
+from constants import ADMINS, EMBED_COLOR
 from db import db
 
 
@@ -43,9 +43,9 @@ def get_guild_id(object_):
 # LOG
 async def log(i: Interaction, msg: str):
     if channel := db.guilds_cache[i.guild_id]["logs"]:
-        log_embed = discord.Embed(description=msg)
+        log_embed = discord.Embed(description=msg, color=EMBED_COLOR)
         log_embed.add_field(
-            name="Author",
+            name=_T(i, ""),
             value=f"{i.user.name}#{i.user.discriminator}\nID: ``{i.user.id}``",
         )
         log_embed.set_footer(text=format_dt(datetime.now()))
