@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 from motor import motor_tornado
 
@@ -21,6 +22,7 @@ class Database:
         # Collections
         db = motor_tornado.MotorClient(url)["security"]
         self.guilds = db.guilds
+        self.warns = db.warns
 
         # Cache
         prefs = self.guilds.find({})
@@ -30,6 +32,17 @@ class Database:
 
         self.translations = load_languages()
 
+    async def warn(self, user_id: int, reason: str):
+        if (warns := await self.warns.find_one({"_id": user_id})) is None:
+            warns: dict = {"_id": user_id, "0": {reason: datetime.now()}}
+            await self.warns.insert_one(warns)
+        else:
+            num = list(warns.keys())[-1]
+            await self.warns.update_one(
+                {"_id": user_id}, {"$set": {str(num + 1): {reason: datetime.now()}}}
+            )
+
+    # REVIEW Unused
     async def set_default_prefs(self, guild_id: int):
         settings = DEFAULT_GUILD_SETTINGS.copy()
         settings["_id"] = guild_id
@@ -37,6 +50,7 @@ class Database:
         self.guilds_cache[guild_id] = settings
         return settings
 
+    # REVIEW Unused
     async def set_guild_data(self, guild_id, field, value):
         await self.guilds.update_one({"_id": guild_id}, {"$set": {field: value}})
         self.guilds_cache[guild_id][field] = value

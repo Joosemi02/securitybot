@@ -7,7 +7,8 @@ from discord.errors import Forbidden
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
-from utils import _T, embed_fail, embed_success, log
+from db import db
+from utils import _T, embed_fail, embed_success, log_punishment
 
 
 class Moderation(commands.Cog):
@@ -36,7 +37,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await log(i, punishment_msg)
+        await log_punishment(i, punishment_msg)
 
     @app_commands.command()
     @app_commands.guild_only()
@@ -56,7 +57,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await log(i, punishment_msg)
+        await log_punishment(i, punishment_msg)
 
     @app_commands.command()
     @app_commands.guild_only()
@@ -95,7 +96,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await log(i, punishment_msg)
+        await log_punishment(i, punishment_msg)
 
     @app_commands.command()
     @app_commands.guild_only()
@@ -117,7 +118,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await log(i, punishment_msg)
+        await log_punishment(i, punishment_msg)
 
     @app_commands.command()
     @app_commands.guild_only()
@@ -211,7 +212,20 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await log(i, punishment_msg)
+        await log_punishment(i, punishment_msg)
+
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def warn(self, i: Interaction, member: discord.Member, reason: str):
+        await i.response.defer()
+        await db.warn(member.id, reason)
+
+        punishment_msg = _T(
+            i, "warnings.punished", member=member.display_name, reason=reason
+        )
+        await i.followup.send(embed_success(punishment_msg))
+        await log_punishment(i, punishment_msg)
 
 
 async def setup(bot):

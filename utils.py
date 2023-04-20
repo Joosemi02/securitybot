@@ -41,7 +41,7 @@ def get_guild_id(object_):
 
 
 # LOG
-async def log(i: Interaction, msg: str):
+async def log_punishment(i: Interaction, msg: str):
     if channel := db.guilds_cache[i.guild_id]["logs"]:
         log_embed = discord.Embed(description=msg, color=EMBED_COLOR)
         log_embed.add_field(

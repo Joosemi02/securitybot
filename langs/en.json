@@ -37,5 +37,8 @@
             "created_at": "Created At"
         },
         "slowmode": "{channel} slowmode set to {time} seconds."
+    },
+    "warnings": {
+        "punish": "{member} was warned for {reason}"
     }
 }
