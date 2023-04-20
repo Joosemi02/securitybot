@@ -24,6 +24,7 @@
             "joined_at": "Join Date"
         },
         "serverinfo": {
+            "title": "Server Info",
             "server_id": "Server ID",
             "name": "Name",
             "owner": "Owner",
@@ -39,6 +40,14 @@
         "slowmode": "{channel} slowmode set to {time} seconds."
     },
     "warnings": {
-        "punish": "{member} was warned for {reason}"
+        "punish": "{member} was warned for {reason}",
+        "no_warns": "No warnings found 👏",
+        "display": {
+            "not_my_warns": "This is not your warning log.",
+            "title": "Warnings",
+            "reason": "Reason",
+            "date": "Date",
+            "page": "Page"
+        }
     }
 }
