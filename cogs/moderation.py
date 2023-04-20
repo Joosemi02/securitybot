@@ -6,6 +6,7 @@ from discord.app_commands import Choice
 from discord.errors import Forbidden
 from discord.ext import commands
 
+from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
 from utils import _T, embed_fail, embed_success, log
 
 
@@ -25,7 +26,7 @@ class Moderation(commands.Cog):
         try:
             await member.kick(reason=reason)
         except Forbidden:
-            await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
 
         punishment_msg = _T(
             i,
@@ -43,9 +44,9 @@ class Moderation(commands.Cog):
     async def ban(self, i: Interaction, member: discord.Member, reason: str = None):
         await i.response.defer()
         try:
-            await member.kick(reason=reason)
+            await member.ban(reason=reason)
         except Forbidden:
-            await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
 
         punishment_msg = _T(
             i,
@@ -83,7 +84,7 @@ class Moderation(commands.Cog):
                 until=datetime.now() + timedelta(seconds=time.value), reason=reason
             )
         except Forbidden:
-            await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
 
         punishment_msg = _T(
             i,
@@ -95,6 +96,95 @@ class Moderation(commands.Cog):
 
         await i.followup.send(embed_success(punishment_msg))
         await log(i, punishment_msg)
+
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def clear(
+        self, i: Interaction, amount: app_commands.Range[1, MAX_CLEAR_AMOUNT]
+    ):
+        await i.response.defer()
+        try:
+            await i.channel.purge(limit=amount, bulk=True)
+        except Forbidden:
+            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+
+        punishment_msg = _T(
+            i,
+            "moderation.clear",
+            amount=amount,
+            channel=i.channel.mention,
+        )
+
+        await i.followup.send(embed_success(punishment_msg))
+        await log(i, punishment_msg)
+
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def userinfo(self, i: Interaction, member: discord.Member):
+        await i.response.defer()
+        embed = discord.Embed(color=EMBED_COLOR)
+        embed.set_thumbnail(url=member.avatar.url if member.avatar else "")
+        embed.set_author(name=member)
+
+        embed.add_field(name=_T("moderation.userinfo.user_id"), value=member.id)
+        embed.add_field(name=_T("moderation.userinfo.nick"), value=member.display_name)
+        embed.add_field(name=_T("moderation.userinfo.status"), value=member.status)
+
+        embed.add_field(name=_T("moderation.userinfo.voice"), value=member.voice)
+        embed.add_field(name=_T("moderation.userinfo.game"), value=member.activity)
+        embed.add_field(name=_T("moderation.userinfo.toprole"), value=member.top_role)
+
+        embed.add_field(
+            name=_T("moderation.userinfo.created_at"),
+            value=member.created_at.__format__("%A, %d. %B %Y @ %H:%M:%S"),
+        )
+        embed.add_field(
+            name=_T("moderation.userinfo.joined_at"),
+            value=member.joined_at.__format__("%A, %d. %B %Y @ %H:%M:%S"),
+        )
+
+        await i.followup.send(embed=embed)
+
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def serverinfo(self, i: Interaction):
+        await i.response.defer()
+        server = i.guild
+        embed = discord.Embed(title="serverinfo", color=EMBED_COLOR)
+        embed.set_thumbnail(url=server.icon.url if server.icon else "")
+        embed.set_footer(text=f"{_T('moderation.serverinfo.server_id')}: {server.id}")
+
+        embed.add_field(name=_T("moderation.serverinfo.name"), value=server.name)
+        embed.add_field(name=_T("moderation.serverinfo.owner"), value=server.owner)
+        embed.add_field(
+            name=_T("moderation.serverinfo.members"), value=server.member_count
+        )
+
+        online = len([m for m in server.members if m.status.online])
+        channels = len(server.text_channels)
+        embed.add_field(name=_T("moderation.serverinfo.online"), value=str(online))
+        embed.add_field(name=_T("moderation.serverinfo.channels"), value=str(channels))
+        embed.add_field(
+            name=_T("moderation.serverinfo.region"), value=server.preferred_locale.name
+        )
+
+        roles = len(server.roles)
+        emojis = len(server.emojis)
+        embed.add_field(
+            name=_T("moderation.serverinfo.toprole"), value=server.roles[-1]
+        )
+        embed.add_field(_T("moderation.serverinfo.roles"), value=str(roles))
+        embed.add_field(name=_T("moderation.serverinfo.emojis"), value=str(emojis))
+
+        embed.add_field(
+            name=_T("moderation.serverinfo.created_at"),
+            value=server.created_at.__format__("%A, %d. %B %Y @ %H:%M:%S"),
+        )
+
+        await i.followup.send(embed=embed)
 
 
 async def setup(bot):

@@ -11,6 +11,30 @@
     "moderation": {
         "kick": "{member} was kicked from the server {reason}",
         "ban": "{member} was banned from the server {reason}",
-        "mute": "{member} was muted for {mutetime} {reason}"
+        "mute": "{member} was muted for {mutetime} {reason}",
+        "clear": "{amount} messages were cleared in {channel}",
+        "userinfo": {
+            "user_id": "User ID",
+            "nick": "Nick",
+            "status": "Status",
+            "voice": "In Voice",
+            "game": "Game",
+            "toprole": "Highest Role",
+            "created_at": "Account Created",
+            "joined_at": "Join Date"
+        },
+        "serverinfo": {
+            "server_id": "Server ID",
+            "name": "Name",
+            "owner": "Owner",
+            "members": "Members",
+            "online": "Currently Online",
+            "channels": "Text Channels",
+            "region": "Region",
+            "toprole": "Highest Role",
+            "roles": "Number of roles",
+            "emojis": "Number of emojis",
+            "created_at": "Created At"
+        }
     }
 }

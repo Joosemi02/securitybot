@@ -5,7 +5,7 @@ from discord import Interaction
 from discord.ext import commands
 from discord.utils import format_dt
 
-from constants import ADMINS, EMBED_COLOR
+from constants import ADMINS
 from db import db
 
 
@@ -58,7 +58,7 @@ def embed_fail(message: str) -> discord.Embed:
 
 
 def embed_success(message: str) -> discord.Embed:
-    return discord.Embed(description=message, color=EMBED_COLOR)
+    return discord.Embed(description=message, color=discord.Color.green())
 
 
 # CHECKS
