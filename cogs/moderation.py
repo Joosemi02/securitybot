@@ -6,7 +6,6 @@ from discord.errors import Forbidden
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
-from db import db
 from utils import _T, embed_fail, embed_success, log_punishment
 
 
