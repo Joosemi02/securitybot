@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 
-import discord
-from discord import Interaction, app_commands
+from discord import Embed, Interaction, Member, TextChannel, app_commands
 from discord.app_commands import Choice
 from discord.errors import Forbidden
 from discord.ext import commands
@@ -22,7 +21,7 @@ class Moderation(commands.Cog):
     @app_commands.command()
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def kick(self, i: Interaction, member: discord.Member, reason: str = None):
+    async def kick(self, i: Interaction, member: Member, reason: str = None):
         await i.response.defer()
         try:
             await member.kick(reason=reason)
@@ -42,7 +41,7 @@ class Moderation(commands.Cog):
     @app_commands.command()
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def ban(self, i: Interaction, member: discord.Member, reason: str = None):
+    async def ban(self, i: Interaction, member: Member, reason: str = None):
         await i.response.defer()
         try:
             await member.ban(reason=reason)
@@ -75,7 +74,7 @@ class Moderation(commands.Cog):
     async def mute(
         self,
         i: Interaction,
-        member: discord.Member,
+        member: Member,
         time: Choice[int],
         reason: str = None,
     ):
@@ -123,9 +122,9 @@ class Moderation(commands.Cog):
     @app_commands.command()
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def userinfo(self, i: Interaction, member: discord.Member):
+    async def userinfo(self, i: Interaction, member: Member):
         await i.response.defer()
-        embed = discord.Embed(color=EMBED_COLOR)
+        embed = Embed(color=EMBED_COLOR)
         embed.set_thumbnail(url=member.avatar.url if member.avatar else "")
         embed.set_author(name=member)
 
@@ -158,7 +157,7 @@ class Moderation(commands.Cog):
     async def serverinfo(self, i: Interaction):
         await i.response.defer()
         server = i.guild
-        embed = discord.Embed(title="serverinfo", color=EMBED_COLOR)
+        embed = Embed(title=_T(i, "moderation.serverinfo.title"), color=EMBED_COLOR)
         embed.set_thumbnail(url=server.icon.url if server.icon else "")
         embed.set_footer(
             text=f"{_T(i, 'moderation.serverinfo.server_id')}: {server.id}"
@@ -200,7 +199,7 @@ class Moderation(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions()
     @app_commands.describe(time="Slowmode time in seconds")
-    async def slowmode(self, i: Interaction, channel: discord.TextChannel, time: int):
+    async def slowmode(self, i: Interaction, channel: TextChannel, time: int):
         await i.response.defer()
         try:
             await channel.edit(slowmode_delay=time)
@@ -211,19 +210,6 @@ class Moderation(commands.Cog):
             i, "moderation.slowmode", channel=i.channel.mention, time=time
         )
 
-        await i.followup.send(embed_success(punishment_msg))
-        await log_punishment(i, punishment_msg)
-
-    @app_commands.command()
-    @app_commands.guild_only()
-    @app_commands.default_permissions()
-    async def warn(self, i: Interaction, member: discord.Member, reason: str):
-        await i.response.defer()
-        await db.warn(member.id, reason)
-
-        punishment_msg = _T(
-            i, "warnings.punished", member=member.display_name, reason=reason
-        )
         await i.followup.send(embed_success(punishment_msg))
         await log_punishment(i, punishment_msg)
 
