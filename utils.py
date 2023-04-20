@@ -16,13 +16,13 @@ class MyBot(commands.Bot):
 
 
 # TRANSLATIONS
-async def _T(
+def _T(
     object_: discord.Interaction | commands.Context | discord.Guild | int,
     key: str,
     **kwargs,
 ) -> str:
     guild_id = get_guild_id(object_)
-    lang = await db.get_guild_lang(guild_id)
+    lang = db.guilds_cache[guild_id]["lang"]
 
     keys = key.split(".")
     value = db.translations[lang]

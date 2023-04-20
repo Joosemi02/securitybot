@@ -30,9 +30,6 @@ class Database:
 
         self.translations = load_languages()
 
-    def get_guild_lang(self, guild_id: int):
-        return self.guilds_cache[guild_id]["lang"]
-
     async def set_default_prefs(self, guild_id: int):
         settings = DEFAULT_GUILD_SETTINGS.copy()
         settings["_id"] = guild_id
