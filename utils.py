@@ -33,7 +33,7 @@ def _T(
 
 def get_guild_id(object_):
     if isinstance(object_, (discord.Interaction, commands.Context)):
-        return object_.guild.id
+        return object_.guild_id
     elif isinstance(object_, discord.Guild):
         return object_.id
     else:
