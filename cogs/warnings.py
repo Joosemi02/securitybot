@@ -161,7 +161,7 @@ class Warnings(commands.Cog):
     @app_commands.default_permissions()
     async def warn(self, i: Interaction, member: Member, reason: str):
         await i.response.defer()
-        await db.warn(member.id, reason)
+        await db.warn(i.guild_id, member.id, reason)
 
         punishment_msg = _T(
             i, "warnings.punished", member=member.display_name, reason=reason
@@ -174,8 +174,9 @@ class Warnings(commands.Cog):
     @app_commands.default_permissions()
     async def userwarnings(self, i: Interaction, member: Member):
         await i.response.defer()
-        warns = db.warns.find_one({"_id": member.id})
+        warns = db.warns.find_one({"_id": member.id, "guild": i.guild_id})
         del warns["_id"]
+        del warns["guild"]
 
         paginator = Paginator(interaction=i, warnings=warns)
         await paginator.send_message(i)
@@ -184,11 +185,31 @@ class Warnings(commands.Cog):
     @app_commands.guild_only()
     async def warnings(self, i: Interaction):
         await i.response.defer()
-        warns = db.warns.find_one({"_id": i.user.id})
+        warns = db.warns.find_one({"_id": i.user.id, "guild": i.guild_id})
         del warns["_id"]
+        del warns["guild"]
 
         paginator = Paginator(interaction=i, warnings=warns)
         await paginator.send_message(i)
+
+    @app_commands.command()
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def unwarn(self, i: Interaction, member: Member, warn_id: int):
+        await i.response.defer()
+
+        filter_ = {"_id": member.id, "guild": i.guild_id, warn_id: {"$exists": True}}
+        if warn := await db.warns.find_one(filter_) is None:
+            return await i.followup.send(_T(i, "warning.not_found"))
+
+        await db.warns.update_one(filter_, {"$unset": {str(warn_id): ""}})
+
+        warning = f"ID: ``{warn_id}`` {warn[warn_id][0]}\n{format_dt(warn[warn_id][1])}"
+        punishment_msg = _T(
+            i, "warnings.unwarn", member=member.display_name, warning=warning
+        )
+        await i.followup.send(embed_success(punishment_msg))
+        await log_punishment(i, punishment_msg)
 
 
 async def setup(bot):

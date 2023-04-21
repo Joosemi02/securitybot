@@ -32,14 +32,21 @@ class Database:
 
         self.translations = load_languages()
 
-    async def warn(self, user_id: int, reason: str):
-        if (warns := await self.warns.find_one({"_id": user_id})) is None:
-            warns: dict = {"_id": user_id, "0": {reason: datetime.now()}}
+    async def warn(self, guild_id: int, user_id: int, reason: str):
+        if (
+            warns := await self.warns.find_one({"_id": user_id, "guild": guild_id})
+        ) is None:
+            warns = {
+                "_id": user_id,
+                "guild": guild_id,
+                "0": {reason: datetime.now()},
+            }
             await self.warns.insert_one(warns)
         else:
             num = list(warns.keys())[-1]
             await self.warns.update_one(
-                {"_id": user_id}, {"$set": {str(num + 1): {reason: datetime.now()}}}
+                {"_id": user_id, "guild": guild_id},
+                {"$set": {str(num + 1): {reason: datetime.now()}}},
             )
 
     # REVIEW Unused
