@@ -17,7 +17,7 @@ class Moderation(commands.Cog):
     async def on_ready(self):
         print(f"{self.bot.user.name}: Moderation extension loaded successfully.")
 
-    @app_commands.command()
+    @app_commands.command(description="Kick this user from the server.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def kick(self, i: Interaction, member: Member, reason: str = None):
@@ -37,7 +37,7 @@ class Moderation(commands.Cog):
         await i.followup.send(embed_success(punishment_msg))
         await log_punishment(i, punishment_msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Ban this user from the server.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def ban(self, i: Interaction, member: Member, reason: str = None):
@@ -57,7 +57,7 @@ class Moderation(commands.Cog):
         await i.followup.send(embed_success(punishment_msg))
         await log_punishment(i, punishment_msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Mute this user temporarily.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     @app_commands.choices(
@@ -96,7 +96,7 @@ class Moderation(commands.Cog):
         await i.followup.send(embed_success(punishment_msg))
         await log_punishment(i, punishment_msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Bulk delete messages in this channel.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def clear(
@@ -118,7 +118,7 @@ class Moderation(commands.Cog):
         await i.followup.send(embed_success(punishment_msg))
         await log_punishment(i, punishment_msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Get info of this user.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def userinfo(self, i: Interaction, member: Member):
@@ -150,7 +150,7 @@ class Moderation(commands.Cog):
 
         await i.followup.send(embed=embed)
 
-    @app_commands.command()
+    @app_commands.command(description="Get info of the server.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def serverinfo(self, i: Interaction):
@@ -194,7 +194,7 @@ class Moderation(commands.Cog):
 
         await i.followup.send(embed=embed)
 
-    @app_commands.command()
+    @app_commands.command(description="Enable slowmode in this channel.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     @app_commands.describe(time="Slowmode time in seconds")

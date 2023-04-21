@@ -156,7 +156,7 @@ class Warnings(commands.Cog):
     async def on_ready(self):
         print(f"{self.bot.user.name}: Warnings extension loaded successfully.")
 
-    @app_commands.command()
+    @app_commands.command(description="Warn a user.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def warn(self, i: Interaction, member: Member, reason: str):
@@ -169,11 +169,10 @@ class Warnings(commands.Cog):
         await i.followup.send(embed_success(punishment_msg))
         await log_punishment(i, punishment_msg)
 
-    @app_commands.command()
-    @app_commands.guild_only()
-    @app_commands.default_permissions()
-    async def userwarnings(self, i: Interaction, member: Member):
+    async def send_warnings(self, i: Interaction, member: Member = None):
         await i.response.defer()
+        if not member:
+            member = i.user
         warns = db.warns.find_one({"_id": member.id, "guild": i.guild_id})
         del warns["_id"]
         del warns["guild"]
@@ -181,18 +180,18 @@ class Warnings(commands.Cog):
         paginator = Paginator(interaction=i, warnings=warns)
         await paginator.send_message(i)
 
-    @app_commands.command()
+    @app_commands.command(description="Use this command to check a user's warnings")
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def userwarnings(self, i: Interaction, member: Member):
+        await self.send_warnings(i, member)
+
+    @app_commands.command(description="Use this command to check your warnings.")
     @app_commands.guild_only()
     async def warnings(self, i: Interaction):
-        await i.response.defer()
-        warns = db.warns.find_one({"_id": i.user.id, "guild": i.guild_id})
-        del warns["_id"]
-        del warns["guild"]
+        await self.send_warnings(i)
 
-        paginator = Paginator(interaction=i, warnings=warns)
-        await paginator.send_message(i)
-
-    @app_commands.command()
+    @app_commands.command(description="Remove a warning from a member.")
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def unwarn(self, i: Interaction, member: Member, warn_id: int):
