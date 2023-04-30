@@ -37,6 +37,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+constants.py
 
 # To do files
 todo
