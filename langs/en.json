@@ -51,5 +51,11 @@
             "date": "Date",
             "page": "Page"
         }
+    },
+    "security": {
+        "antispam": {
+            "on": "Antispam enabled successfully ✅",
+            "off": "Antispam disabled successfully"
+        }
     }
 }

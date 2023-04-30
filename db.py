@@ -48,6 +48,9 @@ class Database:
                 {"_id": user_id, "guild": guild_id},
                 {"$set": {str(num + 1): {reason: datetime.now()}}},
             )
+            
+    async def raid_enabled(self, guild_id: int):
+        return self.guilds_cache[guild_id]["raid"]
 
     # REVIEW Unused
     async def set_default_prefs(self, guild_id: int):
