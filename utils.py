@@ -14,7 +14,7 @@ class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    async def log_punishment(
+    async def log(
         self, object_: Interaction | tuple[int, discord.User], msg: str
     ):
         if isinstance(object_, Interaction):

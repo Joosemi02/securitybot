@@ -6,7 +6,7 @@ from discord.errors import Forbidden
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
-from utils import _T, embed_fail, embed_success, MyBot
+from utils import _T, MyBot, embed_fail, embed_success
 
 
 class Moderation(commands.Cog):
@@ -35,7 +35,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Ban this user from the server.")
     @app_commands.guild_only()
@@ -55,7 +55,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Mute this user temporarily.")
     @app_commands.guild_only()
@@ -94,7 +94,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Bulk delete messages in this channel.")
     @app_commands.guild_only()
@@ -116,7 +116,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Get info of this user.")
     @app_commands.guild_only()
@@ -210,7 +210,7 @@ class Moderation(commands.Cog):
         )
 
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
 
 async def setup(bot):

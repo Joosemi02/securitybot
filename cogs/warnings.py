@@ -9,7 +9,7 @@ from discord.utils import format_dt
 
 from constants import EMBED_COLOR
 from db import db
-from utils import _T, embed_success, MyBot
+from utils import _T, MyBot, embed_success
 
 
 class Paginator:
@@ -167,7 +167,7 @@ class Warnings(commands.Cog):
             i, "warnings.punished", member=member.display_name, reason=reason
         )
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
     async def send_warnings(self, i: Interaction, member: Member = None):
         await i.response.defer()
@@ -208,7 +208,7 @@ class Warnings(commands.Cog):
             i, "warnings.unwarn", member=member.display_name, warning=warning
         )
         await i.followup.send(embed_success(punishment_msg))
-        await self.bot.log_punishment(i, punishment_msg)
+        await self.bot.log(i, punishment_msg)
 
 
 async def setup(bot):
