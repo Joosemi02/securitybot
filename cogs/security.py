@@ -17,7 +17,7 @@ class Security(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print(f"{self.bot.user.name}: The Security extension was loaded successfully.")
+        print(f"{self.bot.user.name}: Security extension was loaded successfully.")
 
     async def enable_antispam(self, i, enabled, notify):
         actions = [
@@ -65,3 +65,12 @@ class Security(commands.Cog):
         await i.followup.send(embed_success(msg))
         await self.bot.log(i, msg)
 
+    @app_commands.command(description="Enable or disable the raid mode.")
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def raid(self, i: Interaction):
+        pass
+
+
+async def setup(bot):
+    await bot.add_cog(Security(bot))
