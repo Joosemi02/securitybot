@@ -14,6 +14,24 @@ class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    async def log_punishment(
+        self, object_: Interaction | tuple[int, discord.User], msg: str
+    ):
+        if isinstance(object_, Interaction):
+            guild_id = object_.guild_id
+            user = object_.user
+        else:
+            guild_id, user = object_
+
+        if channel := self.get_channel(db.guilds_cache[guild_id]["logs"]):
+            log_embed = discord.Embed(description=msg, color=EMBED_COLOR)
+            log_embed.add_field(
+                name=_T(guild_id, ""),
+                value=f"{user.name}#{user.discriminator}\nID: ``{user.id}``",
+            )
+            log_embed.set_footer(text=format_dt(datetime.now()))
+            await channel.send(log_embed)
+
 
 # TRANSLATIONS
 def _T(
@@ -38,18 +56,6 @@ def get_guild_id(object_):
         return object_.id
     else:
         return object_
-
-
-# LOG
-async def log_punishment(i: Interaction, msg: str):
-    if channel := db.guilds_cache[i.guild_id]["logs"]:
-        log_embed = discord.Embed(description=msg, color=EMBED_COLOR)
-        log_embed.add_field(
-            name=_T(i, ""),
-            value=f"{i.user.name}#{i.user.discriminator}\nID: ``{i.user.id}``",
-        )
-        log_embed.set_footer(text=format_dt(datetime.now()))
-        await channel.send(log_embed)
 
 
 # FORMAT
