@@ -8,8 +8,23 @@ from discord.ui import View, button
 from discord.utils import format_dt
 
 from constants import EMBED_COLOR
-from db import db
-from utils import _T, MyBot, embed_success
+from utils import _T, MyBot, db, embed_success
+
+
+async def warn(guild_id: int, user_id: int, reason: str):
+    if (warns := await db.warns.find_one({"_id": user_id, "guild": guild_id})) is None:
+        warns = {
+            "_id": user_id,
+            "guild": guild_id,
+            "0": {reason: datetime.now()},
+        }
+        await db.warns.insert_one(warns)
+    else:
+        num = list(warns.keys())[-1]
+        await db.warns.update_one(
+            {"_id": user_id, "guild": guild_id},
+            {"$set": {str(num + 1): {reason: datetime.now()}}},
+        )
 
 
 class Paginator:
@@ -161,7 +176,7 @@ class Warnings(commands.Cog):
     @app_commands.default_permissions()
     async def warn(self, i: Interaction, member: Member, reason: str):
         await i.response.defer()
-        await db.warn(i.guild_id, member.id, reason)
+        await warn(i.guild_id, member.id, reason)
 
         punishment_msg = _T(
             i, "warnings.punished", member=member.display_name, reason=reason
