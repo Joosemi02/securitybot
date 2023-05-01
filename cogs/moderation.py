@@ -100,7 +100,7 @@ class Moderation(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def clear(
-        self, i: Interaction, amount: app_commands.Range[1, MAX_CLEAR_AMOUNT]
+        self, i: Interaction, amount: app_commands.Range[int, 1, MAX_CLEAR_AMOUNT]
     ):
         await i.response.defer()
         try:
