@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 
 from constants import APPLICATION_ID, TOKEN
-from utils import _T, MyBot, embed_fail, is_admin
+from utils import _T, MyBot, embed_fail, is_admin, set_default_prefs
 
 bot: commands.Bot | MyBot = MyBot(
     command_prefix=commands.when_mentioned,
@@ -26,6 +26,11 @@ async def sync(ctx: commands.Context):
 @bot.event
 async def on_ready():
     print(f"{bot.user.name}: Bot started successfully.")
+
+
+@bot.event
+async def on_guild_join(guild: discord.Guild):
+    await set_default_prefs(guild.id)
 
 
 @bot.event
