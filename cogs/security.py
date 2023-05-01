@@ -1,13 +1,9 @@
 import datetime
-import time
-from collections import defaultdict
-from typing import MutableMapping, Optional
 
 import discord
 from discord import Interaction, app_commands
 from discord.ext import commands
 
-from db import db
 from utils import _T, MyBot, embed_success
 
 
