@@ -53,10 +53,14 @@ guilds_cache = {}
 
 
 async def set_default_prefs(guild_id: int):
-    settings = DEFAULT_GUILD_SETTINGS.copy()
-    settings["_id"] = guild_id
-    await db.guilds.insert_one(settings)
-    guilds_cache[guild_id] = settings
+    if data := await db.guilds.find_one({"_id": guild_id}) is None:
+        settings = DEFAULT_GUILD_SETTINGS.copy()
+        settings["_id"] = guild_id
+        await db.guilds.insert_one(settings)
+        guilds_cache[guild_id] = settings
+    else:
+        del data["_id"]
+        guilds_cache[guild_id] = data
 
 
 async def raid_enabled(guild_id: int):
