@@ -1,29 +1,43 @@
+import json
+import os
 from datetime import datetime
 
 import discord
+import tornado
 from discord import Interaction
 from discord.ext import commands
 from discord.utils import format_dt
+from motor import motor_tornado
 
-from constants import ADMINS, EMBED_COLOR
-from db import db
+from constants import (
+    ADMINS,
+    DEFAULT_GUILD_SETTINGS,
+    EMBED_COLOR,
+    MONGODB_CONNECTION_URI,
+)
 
 
 # CLASSES
 class MyBot(commands.Bot):
     def __init__(self, *args, **kwargs):
+        self.translations = load_languages()
         super().__init__(*args, **kwargs)
 
-    async def log(
-        self, object_: Interaction | tuple[int, discord.User], msg: str
-    ):
+    async def setup_hook(self):
+        prefs = db.guilds.find({})
+        global guilds_cache
+        guilds_cache = {
+            d["_id"]: {k: v for k, v in d.items() if k != "_id"} async for d in prefs
+        }
+
+    async def log(self, object_: Interaction | tuple[int, discord.User], msg: str):
         if isinstance(object_, Interaction):
             guild_id = object_.guild_id
             user = object_.user
         else:
             guild_id, user = object_
 
-        if channel := self.get_channel(db.guilds_cache[guild_id]["logs"]):
+        if channel := self.get_channel(self.guilds_cache[guild_id]["logs"]):
             log_embed = discord.Embed(description=msg, color=EMBED_COLOR)
             log_embed.add_field(
                 name=_T(guild_id, ""),
@@ -33,17 +47,46 @@ class MyBot(commands.Bot):
             await channel.send(log_embed)
 
 
+# DATABASE
+db = motor_tornado.MotorClient(MONGODB_CONNECTION_URI)["security"]
+guilds_cache = {}
+
+
+async def set_default_prefs(guild_id: int):
+    settings = DEFAULT_GUILD_SETTINGS.copy()
+    settings["_id"] = guild_id
+    await db.guilds.insert_one(settings)
+    guilds_cache[guild_id] = settings
+
+
+async def raid_enabled(guild_id: int):
+    return guilds_cache[guild_id]["raid"]
+
+
 # TRANSLATIONS
+def load_languages():
+    translations = {}
+    for filename in os.listdir("langs"):
+        if filename.endswith(".json"):
+            lang = filename[:-5]
+            with open(f"langs/{filename}", "r", encoding="utf-8") as f:
+                translations[lang] = json.load(f)
+    return translations
+
+
+translations = load_languages()
+
+
 def _T(
     object_: discord.Interaction | commands.Context | discord.Guild | int,
     key: str,
     **kwargs,
 ) -> str:
     guild_id = get_guild_id(object_)
-    lang = db.guilds_cache[guild_id]["lang"]
+    lang = guilds_cache[guild_id]["lang"]
 
     keys = key.split(".")
-    value = db.translations[lang]
+    value = translations[lang]
     for k in keys:
         value: dict | str = value[k]
     return value.format(**kwargs)
@@ -51,7 +94,7 @@ def _T(
 
 def get_guild_id(object_):
     if isinstance(object_, (discord.Interaction, commands.Context)):
-        return object_.guild_id
+        return object_.guild.id
     elif isinstance(object_, discord.Guild):
         return object_.id
     else:
