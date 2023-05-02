@@ -271,7 +271,7 @@ class Security(commands.Cog):
         )
         await channel.send(embed=e)
 
-    async def execute_punishments(self, member, guild_id, punishments):
+    async def execute_punishments(self, member: discord.Member, guild_id, punishments):
         punishment_msg = None
         if "warn" in punishments:
             exec_warn(guild_id, member.id, "Anti Spam")
@@ -356,7 +356,8 @@ class Security(commands.Cog):
 
         await self.check_raid(guild_id, author, message)
         if any(link in message.content for link in self.links):
-            await self.execute_punishments()
+            with contextlib.suppress(Forbidden):
+                await self.execute_punishments()
 
     @commands.Cog.listener()
     async def on_automod_action(self, execution: discord.AutoModAction):
@@ -458,7 +459,7 @@ class Security(commands.Cog):
         msg = _T(i, "antiraid")
         await i.followup.send(embed_success(msg))
         await self.bot.log(i, msg)
-    
+
     @app_commands.command()
     @app_commands.describe(
         punishment="Choose a punishment for when a malicious link is detected."
@@ -483,6 +484,7 @@ class Security(commands.Cog):
         msg = _T(i, "linkfilter")
         await i.followup.send(embed_success(msg))
         await self.bot.log(i, msg)
+
 
 async def setup(bot):
     await bot.add_cog(Security(bot))
