@@ -75,6 +75,21 @@ async def get_guild_prefs(guild_id: int, key):
     return guilds_cache[guild_id][key]
 
 
+async def configure_antiraid(guild_id, punishment: str):
+    if punishment == "disabled":
+        await db.guilds.update_one(
+            {"_id": guild_id}, {"$set": {"antiraid.enabled": False}}
+        )
+        guilds_cache[guild_id]["antiraid"]["enabled"] = False
+    else:
+        await db.guilds.update_one(
+            {"_id": guild_id},
+            {"$set": {"antiraid.enabled": True, "antiraid.punishments": [punishment]}},
+        )
+        guilds_cache[guild_id]["antiraid"]["enabled"] = True
+        guilds_cache[guild_id]["antiraid"]["punishments"] = [punishment]
+
+
 # TRANSLATIONS
 def load_languages():
     translations = {}
