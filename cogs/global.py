@@ -33,7 +33,10 @@ class BugModal(discord.ui.Modal):
         channel = i.client.get_channel(BUG_REPORT_CHANNEL)
         e = embed_info(self.info.value)
         e.set_author(name=i.user.name, icon_url=i.user.display_avatar.url)
-        await channel.send(embed=e)
+        if channel:
+            await channel.send(embed=e)
+        else:
+            print("BUG REPORT CHANNEL NOT FOUND")
         await i.followup.send(
             "Thanks for submitting the bug you found!", ephemeral=True
         )
