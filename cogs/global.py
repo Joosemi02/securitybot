@@ -126,6 +126,36 @@ class Global(commands.Cog):
         modal = BugModal()
         await i.response.send_modal(modal)
 
+    @app_commands.command()
+    @app_commands.guild_only()
+    async def help(self, i: discord.Interaction):
+        embed = embed_info("Security bot to protect your server")
+        embed.add_field(name="Anti Spam", value="Punish spammers /antispam")
+        embed.add_field(
+            name="Anti Bot Raid", value="Prevent raids in your server /antiraid"
+        )
+        embed.add_field(
+            name="Link Filter",
+            value="Malicious link filter, especially against Discord and Steam phishing /linkfilter",
+        )
+        embed.add_field(
+            name="Join Watch",
+            value="Notify suspicious accounts that join in a short amount of time /joinwatch",
+        )
+        embed.add_field(
+            name="Punishments",
+            value="Customize auto punishments for each security feature enabled",
+        )
+        embed.add_field(
+            name="Moderation commands",
+            value="Basic moderation commands like /kick, /ban, /mute, /userinfo, /serverinfo",
+        )
+        embed.add_field(
+            name="Warning system",
+            value="Warn users with /warn. Check your /warnings or other /userwarnings if you're a moderator.",
+        )
+        await i.response.send_message(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(Global(bot))
