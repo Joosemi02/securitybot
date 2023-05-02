@@ -185,7 +185,7 @@ class Moderation(commands.Cog):
         embed.add_field(
             name=_T(i, "moderation.serverinfo.toprole"), value=server.roles[-1]
         )
-        embed.add_field(_T(i, "moderation.serverinfo.roles"), value=str(roles))
+        embed.add_field(name=_T(i, "moderation.serverinfo.roles"), value=str(roles))
         embed.add_field(name=_T(i, "moderation.serverinfo.emojis"), value=str(emojis))
 
         embed.add_field(
@@ -210,7 +210,7 @@ class Moderation(commands.Cog):
             i, "moderation.slowmode", channel=i.channel.mention, time=time
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
 
