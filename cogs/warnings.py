@@ -8,7 +8,7 @@ from discord.ui import View, button
 from discord.utils import format_dt
 
 from constants import EMBED_COLOR
-from utils import _T, MyBot, db, embed_success
+from utils import _T, MyBot, db, embed_success, embed_fail
 
 
 async def exec_warn(guild_id: int, user_id: int, reason: str):
@@ -214,7 +214,7 @@ class Warnings(commands.Cog):
 
         filter_ = {"_id": member.id, "guild": i.guild_id, warn_id: {"$exists": True}}
         if warn := await db.warns.find_one(filter_) is None:
-            return await i.followup.send(_T(i, "warning.not_found"))
+            return await i.followup.send(embed_fail(_T(i, "warning.not_found")))
 
         await db.warns.update_one(filter_, {"$unset": {str(warn_id): ""}})
 
