@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import time
 import traceback
 
 import discord
@@ -14,6 +15,7 @@ bot: commands.Bot | MyBot = MyBot(
     intents=discord.Intents.default(),
     application_id=APPLICATION_ID,
 )
+bot.start_time = time.time()
 
 
 @bot.event

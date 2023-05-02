@@ -1,3 +1,7 @@
+import os
+import subprocess
+import time
+
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -34,7 +38,7 @@ class Global(commands.Cog):
     async def on_ready(self):
         print(f"{self.bot.user.name}: Global extension loaded successfully.")
 
-    @commands.Cog.listener
+    @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         await set_default_prefs(guild.id)
 
@@ -43,7 +47,63 @@ class Global(commands.Cog):
     async def sync(self, ctx: commands.Context):
         await self.bot.tree.sync()
         await ctx.message.delete()
-    
+
+    @commands.command()
+    @commands.check(is_admin)
+    async def info(self, ctx: commands.Context):
+        embed = embed_info("")
+        bot = self.bot
+        uptime = time.time() - bot.start_time
+        uptime_str = f"{int(uptime // 3600)} hours, {int((uptime % 3600) // 60)} minutes, and {int(uptime % 60)} seconds"
+
+        # Get general bot information
+        guild_count = len(bot.guilds)
+        user_count = len(bot.users)
+
+        # Create an embed to display the bot information
+        embed = discord.Embed(title="Bot Information", color=discord.Color.blue())
+        embed.add_field(name="Uptime", value=uptime_str, inline=False)
+        embed.add_field(name="Guild Count", value=guild_count)
+        embed.add_field(name="User Count", value=user_count)
+
+        # Calculate bot response time
+        start_time = time.time()
+        message = await ctx.send("Pinging...")
+        end_time = time.time()
+        response_time = (end_time - start_time) * 1000
+        embed.add_field(
+            name="Response Time", value=f"{response_time:.2f} ms", inline=False
+        )
+
+        # Calculate bot CPU usage
+        cpu_output = subprocess.check_output(
+            "WMIC CPU GET LoadPercentage /Value", shell=True
+        )
+        cpu_usage = int(cpu_output.decode().strip().split("=")[1])
+        embed.add_field(name="CPU Usage", value=f"{cpu_usage}%")
+
+        # Get memory usage
+        memory_output = subprocess.check_output(
+            "WMIC OS GET FreePhysicalMemory,TotalVisibleMemorySize /Value", shell=True
+        )
+        memory_free, memory_total = map(
+            int,
+            [
+                s.split("=")[1].strip()
+                for s in memory_output.decode().split("\n")
+                if "FreePhysicalMemory" in s or "TotalVisibleMemorySize" in s
+            ],
+        )
+        memory_used = memory_total - memory_free
+        memory_percent = memory_used / memory_total * 100
+        memory_used_mb = memory_used / 1024
+        memory_total_mb = memory_total / 1024
+        embed.add_field(
+            name="Memory Usage",
+            value=f"{memory_used_mb:.2f}/{memory_total_mb:.2f} MB ({memory_percent:.2f}%)",
+        )
+
+        await message.edit(content="", embed=embed)
 
     @app_commands.command(description="Use this command to report bot bugs")
     @app_commands.guild_only()
