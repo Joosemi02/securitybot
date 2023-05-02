@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 
 import discord
-import tornado
 from discord import Interaction
 from discord.ext import commands
 from discord.utils import format_dt
@@ -37,8 +36,8 @@ class MyBot(commands.Bot):
         else:
             guild_id, user = object_
 
-        if channel := self.get_channel(self.guilds_cache[guild_id]["logs"]):
-            log_embed = discord.Embed(description=msg, color=EMBED_COLOR)
+        if channel := self.get_channel(guilds_cache[guild_id]["logs"]):
+            log_embed = embed_info(msg)
             log_embed.add_field(
                 name=_T(guild_id, ""),
                 value=f"{user.name}#{user.discriminator}\nID: ``{user.id}``",
@@ -52,6 +51,11 @@ db = motor_tornado.MotorClient(MONGODB_CONNECTION_URI)["security"]
 guilds_cache = {}
 
 
+async def set_guild_data(guild_id, field, value):
+    await db.guilds.update_one({"_id": guild_id}, {"$set": {field: value}})
+    guilds_cache[guild_id][field] = value
+
+
 async def set_default_prefs(guild_id: int):
     if data := await db.guilds.find_one({"_id": guild_id}) is None:
         settings = DEFAULT_GUILD_SETTINGS.copy()
@@ -61,6 +65,10 @@ async def set_default_prefs(guild_id: int):
     else:
         del data["_id"]
         guilds_cache[guild_id] = data
+
+
+async def get_punishments(guild_id: int, category: str):
+    return guilds_cache[guild_id][category]["punishments"]
 
 
 async def raid_enabled(guild_id: int):
@@ -106,6 +114,10 @@ def get_guild_id(object_):
 
 
 # FORMAT
+def embed_info(message: str) -> discord.Embed:
+    return discord.Embed(description=message, color=EMBED_COLOR)
+
+
 def embed_fail(message: str) -> discord.Embed:
     return discord.Embed(description=message, color=discord.Color.red())
 
