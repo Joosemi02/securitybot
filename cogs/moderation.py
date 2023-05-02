@@ -136,7 +136,6 @@ class Moderation(commands.Cog):
         embed.add_field(name=_T(i, "moderation.userinfo.status"), value=member.status)
 
         embed.add_field(name=_T(i, "moderation.userinfo.voice"), value=member.voice)
-        embed.add_field(name=_T(i, "moderation.userinfo.game"), value=member.activity)
         embed.add_field(
             name=_T(i, "moderation.userinfo.toprole"), value=member.top_role
         )
@@ -170,9 +169,9 @@ class Moderation(commands.Cog):
             name=_T(i, "moderation.serverinfo.members"), value=server.member_count
         )
 
-        online = len([m for m in server.members if m.status.online])
-        channels = len(server.text_channels)
+        online = len([m for m in server.members if m.status == "online"])
         embed.add_field(name=_T(i, "moderation.serverinfo.online"), value=str(online))
+        channels = len(server.text_channels)
         embed.add_field(
             name=_T(i, "moderation.serverinfo.channels"), value=str(channels)
         )
