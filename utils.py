@@ -71,8 +71,8 @@ async def get_punishments(guild_id: int, category: str):
     return guilds_cache[guild_id][category]["punishments"]
 
 
-async def raid_enabled(guild_id: int):
-    return guilds_cache[guild_id]["raid"]
+async def get_guild_prefs(guild_id: int, key):
+    return guilds_cache[guild_id][key]
 
 
 # TRANSLATIONS
