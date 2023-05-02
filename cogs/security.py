@@ -398,9 +398,6 @@ class Security(commands.Cog):
         )
 
     @app_commands.command(description="Manage the antispam filter.")
-    @app_commands.describe(
-        notify="Channel to send a notification when a user is punished for spam."
-    )
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def antispam(self, i: Interaction, enabled: bool):
@@ -454,7 +451,7 @@ class Security(commands.Cog):
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def antiraid(self, i, punishment):
+    async def antiraid(self, i, punishment: Choice[str]):
         await i.response.defer()
 
         await configure_punihsments(i.guild_id, "antiraid", punishment)
@@ -479,7 +476,7 @@ class Security(commands.Cog):
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def linkfilter(self, i, punishment):
+    async def linkfilter(self, i, punishment: Choice[str]):
         await i.response.defer()
 
         await configure_punihsments(i.guild_id, "link_filter", punishment)
