@@ -67,11 +67,11 @@ async def set_default_prefs(guild_id: int):
         guilds_cache[guild_id] = data
 
 
-async def get_punishments(guild_id: int, category: str):
+def get_punishments(guild_id: int, category: str):
     return guilds_cache[guild_id][category]["punishments"]
 
 
-async def get_guild_prefs(guild_id: int, key):
+def get_guild_prefs(guild_id: int, key):
     return guilds_cache[guild_id][key]
 
 

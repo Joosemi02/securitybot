@@ -139,7 +139,7 @@ class NotifySelect(discord.ui.ChannelSelect):
             placeholder=placeholder,
             min_values=0,
             max_values=1,
-            channel_types=discord.ChannelType.text,
+            channel_types=[discord.ChannelType.text],
         )
         self.bot = bot
 
@@ -199,9 +199,9 @@ class ConfigurationView(discord.ui.View):
         placeholder = _T(i, "antispam.choose")
         options = [
             SelectOption(
-                label=_T(i, f"pusnihments.{action}"),
-                value=emoji,
-                emoji=action,
+                label=_T(i, f"punishments.{action}"),
+                value=action,
+                emoji=emoji,
                 default=action in get_punishments(i.guild_id, "antispam"),
             )
             for action, emoji in actions.items()
@@ -404,16 +404,14 @@ class Security(commands.Cog):
     @app_commands.default_permissions()
     async def antispam(self, i: Interaction, enabled: bool):
         await i.response.defer()
-        if not enabled:
-            msg = _T(i, "antispam.off")
-            await i.followup.send(embed=embed_success(msg))
-            await self.bot.log(i, msg)
-        else:
-            await self.enable_antispam(i)
-            view = ConfigurationView(i, self.bot)
-            view.message = await i.followup.send(
-                view=view, embed=embed_info(_T(i, "antispam.on"))
-            )
+        await self.enable_antispam(i, enabled)
+
+        msg = _T(i, f"antispam.{'on' if enabled else 'off'}")
+        view = ConfigurationView(i, self.bot)
+        view.message = await i.followup.send(
+            embed=embed_success(msg), view=view if enabled else discord.components.MISSING
+        )
+        await self.bot.log(i, msg)
 
     @app_commands.command()
     @app_commands.describe(
@@ -456,7 +454,7 @@ class Security(commands.Cog):
     async def antiraid(self, i, punishment: Choice[str]):
         await i.response.defer()
 
-        await configure_punihsments(i.guild_id, "antiraid", punishment)
+        await configure_punihsments(i.guild_id, "antiraid", punishment.value)
         msg = _T(i, "antiraid")
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
@@ -481,7 +479,7 @@ class Security(commands.Cog):
     async def linkfilter(self, i, punishment: Choice[str]):
         await i.response.defer()
 
-        await configure_punihsments(i.guild_id, "link_filter", punishment)
+        await configure_punihsments(i.guild_id, "link_filter", punishment.value)
         msg = _T(i, "linkfilter")
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
