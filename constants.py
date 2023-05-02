@@ -11,6 +11,11 @@ TOKEN = os.getenv("TOKEN")
 ADMINS = [int(os.getenv("ID"))]
 
 EMBED_COLOR = 0x000
-DEFAULT_GUILD_SETTINGS = {"lang": "en", "logs": 0, "raid": False}
+DEFAULT_GUILD_SETTINGS = {
+    "lang": "en",
+    "logs": 0,
+    "antispam": {"enabled": False, "punishments": [], "notify": 0},
+    "raid": {"enabled": False},
+}
 
 MAX_CLEAR_AMOUNT = 300
