@@ -62,6 +62,8 @@
         "notify": "Configured notification channel for antispam ✅: {channel}",
         "blocked": "{bot} - Your message was blocked for spam"
     },
+    "antiraid": "Configured antiraid",
+    "linkfilter": "Configured malicious link filter",
     "joinwatch": "Configured joinwatch at channel: {channel}",
     "punishments": {
         "warn": "Warn",

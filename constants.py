@@ -17,6 +17,7 @@ DEFAULT_GUILD_SETTINGS = {
     "antispam": {"enabled": False, "punishments": [], "notify": 0},
     "suspicious_joins": 0,
     "antiraid": {"enabled": False, "punishments": []},
+    "link_filter": {"enabled": False, "punishments": []},
 }
 
 MAX_CLEAR_AMOUNT = 300

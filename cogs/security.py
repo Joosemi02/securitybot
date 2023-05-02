@@ -15,7 +15,7 @@ from discord.interactions import Interaction
 from utils import (
     _T,
     MyBot,
-    configure_antiraid,
+    configure_punihsments,
     embed_info,
     embed_success,
     get_guild_prefs,
@@ -233,6 +233,8 @@ class Security(commands.Cog):
     def __init__(self, bot):
         self.bot: MyBot = bot
         self._spam_check: defaultdict[int, RaidChecker] = defaultdict(RaidChecker)
+        with open("link_filter.txt", "r", encoding="utf-8") as f:
+            self.links: list = f.read().splitlines()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -348,14 +350,13 @@ class Security(commands.Cog):
             return
         if author.bot:
             return
-
-        # ignore members with manage messages permission
         if author.guild_permissions.manage_messages:
             return
-
         guild_id = message.guild.id
 
         await self.check_raid(guild_id, author, message)
+        if any(link in message.content for link in self.links):
+            await self.execute_punishments()
 
     @commands.Cog.listener()
     async def on_automod_action(self, execution: discord.AutoModAction):
@@ -456,11 +457,35 @@ class Security(commands.Cog):
     async def antiraid(self, i, punishment):
         await i.response.defer()
 
-        await configure_antiraid(i.guild_id, punishment)
-        msg = _T(i, "antispam.config")
+        await configure_punihsments(i.guild_id, "antiraid", punishment)
+        msg = _T(i, "antiraid")
         await i.followup.send(embed_success(msg))
         await self.bot.log(i, msg)
+    
+    @app_commands.command()
+    @app_commands.describe(
+        punishment="Choose a punishment for when a malicious link is detected."
+    )
+    @app_commands.choices(
+        punishment=[
+            Choice(name="Disable", value="disable"),
+            Choice(name="Warn", value="warn"),
+            Choice(name="5 min mute", value="min_mute"),
+            Choice(name="1 hour mute", value="hour_mute"),
+            Choice(name="1 day mute", value="day_mute"),
+            Choice(name="Kick", value="kick"),
+            Choice(name="Ban", value="ban"),
+        ]
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def linkfilter(self, i, punishment):
+        await i.response.defer()
 
+        await configure_punihsments(i.guild_id, "link_filter", punishment)
+        msg = _T(i, "linkfilter")
+        await i.followup.send(embed_success(msg))
+        await self.bot.log(i, msg)
 
 async def setup(bot):
     await bot.add_cog(Security(bot))
