@@ -143,7 +143,7 @@ class Global(commands.Cog):
         embed.add_field(
             name=_T(i, "help.moderation.1"), value=_T(i, "help.moderation.2")
         )
-        embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnigns.2"))
+        embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnings.2"))
         await i.response.send_message(embed=embed)
 
 
