@@ -15,7 +15,8 @@ DEFAULT_GUILD_SETTINGS = {
     "lang": "en",
     "logs": 0,
     "antispam": {"enabled": False, "punishments": [], "notify": 0},
-    "raid": {"enabled": False},
+    "suspicious_joins": 0,
+    "antiraid": {"enabled": False, "punishments": []},
 }
 
 MAX_CLEAR_AMOUNT = 300
