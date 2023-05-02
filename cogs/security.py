@@ -6,6 +6,7 @@ from typing import Iterable, List, MutableMapping, Optional
 
 import discord
 from discord import Interaction, app_commands
+from discord.app_commands import Choice
 from discord.components import SelectOption
 from discord.errors import Forbidden
 from discord.ext import commands
@@ -14,6 +15,7 @@ from discord.interactions import Interaction
 from utils import (
     _T,
     MyBot,
+    configure_antiraid,
     embed_info,
     embed_success,
     get_guild_prefs,
@@ -127,94 +129,6 @@ class RaidChecker:
     def __init__(self, bot: MyBot):
         self.bot = bot
         self._spam_check: defaultdict[int, RaidChecker] = defaultdict(RaidChecker)
-
-    async def start_lockdown(
-        self,
-        ctx,
-        channels: list[discord.TextChannel | discord.VoiceChannel],
-    ) -> tuple[
-        list[discord.TextChannel | discord.VoiceChannel],
-        list[discord.TextChannel | discord.VoiceChannel],
-    ]:
-        guild_id = ctx.guild.id
-        default_role = ctx.guild.default_role
-
-        records = []
-        success, failures = [], []
-        reason = f"Lockdown request by {ctx.author} (ID: {ctx.author.id})"
-        async with ctx.typing():
-            for channel in channels:
-                overwrite = channel.overwrites_for(default_role)
-                allow, deny = overwrite.pair()
-
-                overwrite.send_messages = False
-                overwrite.connect = False
-                overwrite.add_reactions = False
-                overwrite.use_application_commands = False
-                overwrite.create_private_threads = False
-                overwrite.create_public_threads = False
-                overwrite.send_messages_in_threads = False
-
-                try:
-                    await channel.set_permissions(
-                        default_role, overwrite=overwrite, reason=reason
-                    )
-                except discord.HTTPException:
-                    failures.append(channel)
-                else:
-                    success.append(channel)
-                    records.append(
-                        {
-                            "guild_id": guild_id,
-                            "channel_id": channel.id,
-                            "allow": allow.value,
-                            "deny": deny.value,
-                        }
-                    )
-
-        query = """
-            INSERT INTO guild_lockdowns(guild_id, channel_id, allow, deny)
-            SELECT d.guild_id, d.channel_id, d.allow, d.deny
-            FROM jsonb_to_recordset($1::jsonb) AS d(guild_id BIGINT, channel_id BIGINT, allow BIGINT, deny BIGINT)
-            ON CONFLICT (guild_id, channel_id) DO NOTHING
-        """
-        await self.bot.pool.execute(query, records)
-        return success, failures
-
-    async def end_lockdown(
-        self,
-        guild: discord.Guild,
-        *,
-        channel_ids: Optional[list[int]] = None,
-        reason: Optional[str] = None,
-    ) -> list[discord.abc.GuildChannel]:
-        get_channel = guild.get_channel
-        http_fallback: Optional[dict[int, discord.abc.GuildChannel]] = None
-        default_role = guild.default_role
-        failures = []
-        lockdowns = await self.get_lockdown_information(
-            guild.id, channel_ids=channel_ids
-        )
-        for channel_id, permissions in lockdowns.items():
-            channel = get_channel(channel_id)
-
-            if channel is None:
-                if http_fallback is None:
-                    http_fallback = {c.id: c for c in await guild.fetch_channels()}
-                    get_channel = http_fallback.get
-                    channel = get_channel(channel_id)
-                    if channel is None:
-                        continue
-                continue
-
-            try:
-                await channel.set_permissions(
-                    default_role, overwrite=permissions, reason=reason
-                )
-            except discord.HTTPException:
-                failures.append(channel)
-
-        return failures
 
 
 # Views
@@ -519,6 +433,31 @@ class Security(commands.Cog):
         msg = _T(
             i, "joinwatch", channel=suspicious_join_channel.name if enabled else "---"
         )
+        await i.followup.send(embed_success(msg))
+        await self.bot.log(i, msg)
+
+    @app_commands.command()
+    @app_commands.describe(
+        punishment="Choose a punishment for spammers when a raid is detected."
+    )
+    @app_commands.choices(
+        punishment=[
+            Choice(name="Disable", value="disable"),
+            Choice(name="Warn", value="warn"),
+            Choice(name="5 min mute", value="min_mute"),
+            Choice(name="1 hour mute", value="hour_mute"),
+            Choice(name="1 day mute", value="day_mute"),
+            Choice(name="Kick", value="kick"),
+            Choice(name="Ban", value="ban"),
+        ]
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def antiraid(self, i, punishment):
+        await i.response.defer()
+
+        await configure_antiraid(i.guild_id, punishment)
+        msg = _T(i, "antispam.config")
         await i.followup.send(embed_success(msg))
         await self.bot.log(i, msg)
 
