@@ -79,5 +79,36 @@
         "day_mute": "{member} was muted for 1 day for {reason}",
         "kick": "{member} was kicked for {reason}",
         "ban": "{member} was banned for {reason}"
+    },
+    "help": {
+        "desc": "Security bot to protect your server",
+        "antispam": {
+            "1": "Anti Spam",
+            "2": "Punish spammers /antispam"
+        },
+        "antiraid": {
+            "1": "Anti Bot Raid",
+            "2": "Prevent raids in your server /antiraid"
+        },
+        "linkfilter": {
+            "1": "Link Filter",
+            "2": "Malicious link filter, especially against Discord and Steam phishing /linkfilter"
+        },
+        "joinwatch": {
+            "1": "Join Watch",
+            "2": "Notify suspicious accounts that join in a short amount of time /joinwatch"
+        },
+        "punishments": {
+            "1": "Punishments",
+            "2": "Customize auto punishments for each security feature enabled"
+        },
+        "moderation": {
+            "1": "Moderation commands",
+            "2": "Basic moderation commands like /kick, /ban, /mute, /userinfo, /serverinfo"
+        },
+        "warnings": {
+            "1": "Warning system",
+            "2": "Warn users with /warn. Check your /warnings or other /userwarnings if you're a moderator."
+        }
     }
 }

@@ -1,4 +1,3 @@
-import os
 import subprocess
 import time
 
@@ -8,6 +7,7 @@ from discord.ext import commands
 
 from constants import BUG_REPORT_CHANNEL
 from utils import (
+    _T,
     MyBot,
     embed_fail,
     embed_info,
@@ -28,11 +28,12 @@ class BugModal(discord.ui.Modal):
     )
 
     async def on_submit(self, i: discord.Interaction):
+        await i.response.defer()
         channel = i.client.get_channel(BUG_REPORT_CHANNEL)
         e = embed_info(self.info.value)
         e.set_author(name=i.user.name, icon_url=i.user.display_avatar.url)
         await channel.send(embed=e)
-        await i.response.send_message(
+        await i.followup.send(
             "Thanks for submitting the bug you found!", ephemeral=True
         )
 
@@ -129,31 +130,20 @@ class Global(commands.Cog):
     @app_commands.command()
     @app_commands.guild_only()
     async def help(self, i: discord.Interaction):
-        embed = embed_info("Security bot to protect your server")
-        embed.add_field(name="Anti Spam", value="Punish spammers /antispam")
+        embed = embed_info(_T(i, "help.desc"))
+        embed.add_field(name=_T(i, "help.antispam.1"), value=_T(i, "help.antispam.2"))
+        embed.add_field(name=_T(i, "help.antiraid.1"), value=_T(i, "help.antiraid.2"))
         embed.add_field(
-            name="Anti Bot Raid", value="Prevent raids in your server /antiraid"
+            name=_T(i, "help.linkfilter.1"), value=_T(i, "help.linkfilter.2")
+        )
+        embed.add_field(name=_T(i, "help.joinwatch.1"), value=_T(i, "help.joinwatch.2"))
+        embed.add_field(
+            name=_T(i, "help.punishments.1"), value=_T(i, "help.punishments.2")
         )
         embed.add_field(
-            name="Link Filter",
-            value="Malicious link filter, especially against Discord and Steam phishing /linkfilter",
+            name=_T(i, "help.moderation.1"), value=_T(i, "help.moderation.2")
         )
-        embed.add_field(
-            name="Join Watch",
-            value="Notify suspicious accounts that join in a short amount of time /joinwatch",
-        )
-        embed.add_field(
-            name="Punishments",
-            value="Customize auto punishments for each security feature enabled",
-        )
-        embed.add_field(
-            name="Moderation commands",
-            value="Basic moderation commands like /kick, /ban, /mute, /userinfo, /serverinfo",
-        )
-        embed.add_field(
-            name="Warning system",
-            value="Warn users with /warn. Check your /warnings or other /userwarnings if you're a moderator.",
-        )
+        embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnigns.2"))
         await i.response.send_message(embed=embed)
 
 
