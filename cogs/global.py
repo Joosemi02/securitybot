@@ -22,6 +22,7 @@ class BugModal(discord.ui.Modal):
         super().__init__(title="Bug report", timeout=180)
 
     info = discord.ui.TextInput(
+        style=discord.TextStyle.long,
         label="Explain the bug here",
         placeholder="Please be detailed about the steps to reproduce this.",
         min_length=20,
