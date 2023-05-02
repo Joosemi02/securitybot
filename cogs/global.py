@@ -7,7 +7,14 @@ from discord import app_commands
 from discord.ext import commands
 
 from constants import BUG_REPORT_CHANNEL
-from utils import MyBot, embed_info, is_admin, set_default_prefs
+from utils import (
+    MyBot,
+    embed_fail,
+    embed_info,
+    embed_success,
+    is_admin,
+    set_default_prefs,
+)
 
 
 class BugModal(discord.ui.Modal):
@@ -47,6 +54,14 @@ class Global(commands.Cog):
     async def sync(self, ctx: commands.Context):
         await self.bot.tree.sync()
         await ctx.message.delete()
+
+    @commands.command()
+    @commands.check(is_admin)
+    async def leave(self, ctx: commands.Context, guild_id: int):
+        if guild := self.bot.get_guild(guild_id) is None:
+            return await ctx.send(embed=embed_fail("Server not found for this ID"))
+        await guild.leave()
+        await ctx.send(embed=embed_success("Left server successfully"))
 
     @commands.command()
     @commands.check(is_admin)
