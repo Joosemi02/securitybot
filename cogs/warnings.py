@@ -11,7 +11,7 @@ from constants import EMBED_COLOR
 from utils import _T, MyBot, db, embed_success
 
 
-async def warn(guild_id: int, user_id: int, reason: str):
+async def exec_warn(guild_id: int, user_id: int, reason: str):
     if (warns := await db.warns.find_one({"_id": user_id, "guild": guild_id})) is None:
         warns = {
             "_id": user_id,
@@ -176,7 +176,7 @@ class Warnings(commands.Cog):
     @app_commands.default_permissions()
     async def warn(self, i: Interaction, member: Member, reason: str):
         await i.response.defer()
-        await warn(i.guild_id, member.id, reason)
+        await exec_warn(i.guild_id, member.id, reason)
 
         punishment_msg = _T(
             i, "warnings.punished", member=member.display_name, reason=reason
