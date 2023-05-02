@@ -63,7 +63,7 @@ class Global(commands.Cog):
     @commands.command()
     @commands.check(is_admin)
     async def leave(self, ctx: commands.Context, guild_id: int):
-        if guild := self.bot.get_guild(guild_id) is None:
+        if (guild := self.bot.get_guild(guild_id)) is None:
             return await ctx.send(embed=embed_fail("Server not found for this ID"))
         await guild.leave()
         await ctx.send(embed=embed_success("Left server successfully"))

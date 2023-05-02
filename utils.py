@@ -57,7 +57,7 @@ async def set_guild_data(guild_id, field, value):
 
 
 async def set_default_prefs(guild_id: int):
-    if data := await db.guilds.find_one({"_id": guild_id}) is None:
+    if (data := await db.guilds.find_one({"_id": guild_id})) is None:
         settings = DEFAULT_GUILD_SETTINGS.copy()
         settings["_id"] = guild_id
         await db.guilds.insert_one(settings)

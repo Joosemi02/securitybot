@@ -40,7 +40,7 @@
         "slowmode": "{channel} slowmode set to {time} seconds."
     },
     "warnings": {
-        "warn": "{member} was warned for {reason}.",
+        "punish": "{member} was warned for {reason}.",
         "not_found": "This user doesn't have a warning with that ID.",
         "unwarn": "The following warning was removed from {member}:\n{warning}.",
         "display": {

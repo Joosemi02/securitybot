@@ -16,14 +16,14 @@ async def exec_warn(guild_id: int, user_id: int, reason: str):
         warns = {
             "_id": user_id,
             "guild": guild_id,
-            "0": {reason: datetime.now()},
+            "0": [reason, datetime.now()],
         }
         await db.warns.insert_one(warns)
     else:
-        num = list(warns.keys())[-1]
+        num = int(list(warns.keys())[-1])
         await db.warns.update_one(
             {"_id": user_id, "guild": guild_id},
-            {"$set": {str(num + 1): {reason: datetime.now()}}},
+            {"$set": {str(num + 1): [reason, datetime.now()]}},
         )
 
 
@@ -179,7 +179,7 @@ class Warnings(commands.Cog):
         await exec_warn(i.guild_id, member.id, reason)
 
         punishment_msg = _T(
-            i, "warnings.punished", member=member.display_name, reason=reason
+            i, "warnings.punish", member=member.display_name, reason=reason
         )
         await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
@@ -188,9 +188,12 @@ class Warnings(commands.Cog):
         await i.response.defer()
         if not member:
             member = i.user
-        warns = db.warns.find_one({"_id": member.id, "guild": i.guild_id})
-        del warns["_id"]
-        del warns["guild"]
+        warns = await db.warns.find_one({"_id": member.id, "guild": i.guild_id})
+        if warns:
+            del warns["_id"]
+            del warns["guild"]
+        else:
+            warns = {}
 
         paginator = Paginator(interaction=i, warnings=warns)
         await paginator.send_message(i)
@@ -212,8 +215,12 @@ class Warnings(commands.Cog):
     async def unwarn(self, i: Interaction, member: Member, warn_id: int):
         await i.response.defer()
 
-        filter_ = {"_id": member.id, "guild": i.guild_id, warn_id: {"$exists": True}}
-        if warn := await db.warns.find_one(filter_) is None:
+        filter_ = {
+            "_id": member.id,
+            "guild": i.guild_id,
+            str(warn_id): {"$exists": True},
+        }
+        if (warn := await db.warns.find_one(filter_)) is None:
             return await i.followup.send(embed=embed_fail(_T(i, "warning.not_found")))
 
         await db.warns.update_one(filter_, {"$unset": {str(warn_id): ""}})
