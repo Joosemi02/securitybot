@@ -157,7 +157,7 @@ class NotifySelect(discord.ui.ChannelSelect):
             channel_name = "---"
         await set_guild_data(i.guild_id, "antispam.notify", channel_id)
         msg = _T(i, "antispam.notify", channel=channel_name)
-        await i.followup.send(embed_success(msg))
+        await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
 
@@ -179,7 +179,7 @@ class ActionSelect(discord.ui.Select):
     async def callback(self, i: Interaction):
         await set_guild_data(i.guild_id, "antispam.punishments", self.values)
         msg = _T(i, "antispam.config")
-        await i.followup.send(embed_success(msg))
+        await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
 
@@ -405,7 +405,7 @@ class Security(commands.Cog):
         await i.response.defer()
         if not enabled:
             msg = _T(i, "antispam.off")
-            await i.followup.send(embed_success(msg))
+            await i.followup.send(embed=embed_success(msg))
             await self.bot.log(i, msg)
         else:
             await self.enable_antispam(i)
@@ -432,7 +432,7 @@ class Security(commands.Cog):
         msg = _T(
             i, "joinwatch", channel=suspicious_join_channel.name if enabled else "---"
         )
-        await i.followup.send(embed_success(msg))
+        await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
     @app_commands.command()
@@ -457,7 +457,7 @@ class Security(commands.Cog):
 
         await configure_punihsments(i.guild_id, "antiraid", punishment)
         msg = _T(i, "antiraid")
-        await i.followup.send(embed_success(msg))
+        await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
     @app_commands.command()
@@ -482,7 +482,7 @@ class Security(commands.Cog):
 
         await configure_punihsments(i.guild_id, "link_filter", punishment)
         msg = _T(i, "linkfilter")
-        await i.followup.send(embed_success(msg))
+        await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
 

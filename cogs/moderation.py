@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from discord import Embed, Interaction, Member, TextChannel, app_commands
 from discord.app_commands import Choice
@@ -25,7 +25,9 @@ class Moderation(commands.Cog):
         try:
             await member.kick(reason=reason)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i,
@@ -34,7 +36,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" or "✅",
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Ban this user from the server.")
@@ -45,7 +47,9 @@ class Moderation(commands.Cog):
         try:
             await member.ban(reason=reason)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i,
@@ -54,7 +58,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" or "✅",
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Mute this user temporarily.")
@@ -79,11 +83,11 @@ class Moderation(commands.Cog):
     ):
         await i.response.defer()
         try:
-            await member.timeout(
-                until=datetime.now() + timedelta(seconds=time.value), reason=reason
-            )
+            await member.timeout(timedelta(seconds=time.value), reason=reason)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i,
@@ -93,7 +97,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" or "✅",
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Bulk delete messages in this channel.")
@@ -106,7 +110,9 @@ class Moderation(commands.Cog):
         try:
             await i.channel.purge(limit=amount, bulk=True)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i,
@@ -115,7 +121,7 @@ class Moderation(commands.Cog):
             channel=i.channel.mention,
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Get info of this user.")
@@ -203,13 +209,15 @@ class Moderation(commands.Cog):
         try:
             await channel.edit(slowmode_delay=time)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i, "moderation.slowmode", channel=i.channel.mention, time=time
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
 
