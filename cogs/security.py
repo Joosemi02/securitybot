@@ -1,10 +1,122 @@
 import datetime
+from collections import defaultdict
+from datetime import time
+from typing import Iterable, List, MutableMapping, Optional
 
 import discord
 from discord import Interaction, app_commands
+from discord.components import SelectOption
 from discord.ext import commands
+from discord.interactions import Interaction
 
-from utils import _T, MyBot, embed_success
+from utils import (
+    _T,
+    MyBot,
+    embed_info,
+    embed_success,
+    get_punishments,
+    raid_enabled,
+    set_guild_data,
+)
+
+from .warnings import exec_warn
+
+
+class NotifySelect(discord.ui.ChannelSelect):
+    def __init__(self, placeholder: str, bot: MyBot):
+        super().__init__(
+            placeholder=placeholder,
+            min_values=0,
+            max_values=1,
+            channel_types=discord.ChannelType.text,
+        )
+        self.bot = bot
+
+    async def callback(self, i: Interaction):
+        if self.values:
+            channel_id = self.values[0].id
+            channel_name = self.values[0].name
+            rules = await i.guild.fetch_automod_rules()
+            for rule in rules:
+                if rule.trigger.type.value in [3, 5]:
+                    actions = rule.actions
+                    actions.append(discord.AutoModRuleAction(channel_id=channel_id))
+                    await rule.edit(actions=actions)
+        else:
+            channel_id = 0
+            channel_name = "Disabled notification channel"
+        await set_guild_data(i.guild_id, "antispam.notify", channel_id)
+        msg = _T(i, "antispam.notify", channel=channel_name)
+        await i.followup.send(msg)
+        await self.bot.log(i, msg)
+
+
+class ActionSelect(discord.ui.Select):
+    def __init__(
+        self,
+        *,
+        placeholder: str,
+        options: List[SelectOption],
+        actions: Iterable,
+        bot: MyBot,
+    ):
+        super().__init__(
+            placeholder=placeholder, min_values=0, max_values=2, options=options
+        )
+        self.actions = actions
+        self.bot = bot
+
+    async def callback(self, i: Interaction):
+        await set_guild_data(i.guild_id, f"antispam.punishments", self.values)
+        msg = _T(i, "antispam.config")
+        await i.followup.send(msg)
+        await self.bot.log(i, msg)
+
+
+class ConfigurationView(discord.ui.View):
+    def __init__(self, i: Interaction, bot):
+        super().__init__()
+        self.i = i
+        actions = {
+            "warn": "🪧",
+            "min_mute": "⌛",
+            "hour_mute": "🕛",
+            "day_mute": "📆",
+            "kick": "🦶",
+            "ban": "🔨",
+        }
+        placeholder = _T(i, "antispam.choose")
+        options = [
+            SelectOption(
+                label=_T(i, f"pusnihments.{action}"),
+                value=emoji,
+                emoji=action,
+                default=action in get_punishments(i.guild_id, "antispam"),
+            )
+            for action, emoji in actions.items()
+        ]
+        self.add_item(
+            ActionSelect(
+                placeholder=placeholder,
+                options=options,
+                actions=actions.keys(),
+                bot=bot,
+            )
+        )
+        self.add_item(NotifySelect(_T(i, "antispam.choose_channel"), bot))
+
+    async def interaction_check(self, i: Interaction):
+        if self.i.user.id == i.user.id:
+            await i.response.defer()
+            return True
+        else:
+            await i.response.send_message(
+                _T(i, "command_fail.not_own_settings"), ephemeral=True
+            )
+            return False
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
 
 
 class Security(commands.Cog):
@@ -15,15 +127,16 @@ class Security(commands.Cog):
     async def on_ready(self):
         print(f"{self.bot.user.name}: Security extension was loaded successfully.")
 
-    async def enable_antispam(self, i, enabled, notify):
+    async def enable_antispam(self, i: Interaction, enabled):
         actions = [
             discord.AutoModRuleAction(
-                custom_message=f"{self.bot.user.name} - Your message was blocked for spam"
+                custom_message=_T(i, "antispam.blocked", bot=self.bot.user.name)
             ),
-            discord.AutoModRuleAction(duration=datetime.timedelta(hours=1)),
         ]
-        if notify:
-            actions.append(discord.AutoModRuleAction(channel_id=notify.id))
+        rules = await i.guild.fetch_automod_rules()
+        for rule in rules:
+            if rule.trigger.type.value in [3, 5]:
+                await rule.delete()
 
         mention_spam_trigger = discord.AutoModTrigger(
             type=discord.AutoModRuleTriggerType.mention_spam
@@ -50,28 +163,50 @@ class Security(commands.Cog):
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def antispam(
-        self, i: Interaction, enabled: bool, notify: discord.TextChannel = None
-    ):
+    async def antispam(self, i: Interaction, enabled: bool):
         await i.response.defer()
+        if not enabled:
+            msg = _T(i, "antispam.off")
+            await i.followup.send(embed_success(msg))
+            await self.bot.log(i, msg)
+        else:
+            await self.enable_antispam(i)
+            view = ConfigurationView(i, self.bot)
+            view.message = await i.followup.send(
+                view=view, embed=embed_info(_T(i, "antispam.on"))
+            )
 
-        await self.enable_antispam(i, enabled, notify)
-
-        msg = _T(i, f"security.antispam.{'on' if enabled else 'off'}")
-        await i.followup.send(embed_success(msg))
-        await self.bot.log(i, msg)
-
-    @app_commands.command(description="Enable or disable the raid mode.")
-    @app_commands.guild_only()
-    @app_commands.default_permissions()
-    async def raid(self, i: Interaction):
-        pass
+    @commands.Cog.listener()
+    async def on_automod_action(self, execution: discord.AutoModAction):
+        guild_id = execution.guild_id
+        if not execution.rule_trigger_type in [3, 5]:
+            return
+        if punishments := get_punishments(guild_id, "antispam") == []:
+            return
+        if "warn" in punishments:
+            exec_warn(guild_id, execution.user_id, "Anti Spam")
+        member = execution.member
+        if "day_mute" in punishments:
+            await member.timeout(datetime.timedelta(days=1))
+        elif "hour_mute" in punishments:
+            await member.timeout(datetime.timedelta(hours=1))
+        elif "min_mute" in punishments:
+            await member.timeout(datetime.timedelta(minutes=5))
+        if "ban" in punishments:
+            await member.ban(reason="Anti Spam")
+        elif "kick" in punishments:
+            await member.kick(reason="Anti Spam")
+        
+        punishment_msg = _T(
+            guild_id, "warnings.punished", member=member.display_name, reason="Anti Spam"
+        )
+        await self.bot.log((execution.guild_id, self.bot.user), punishment_msg)
 
 
 async def setup(bot):
     await bot.add_cog(Security(bot))
 
-"""
+
 ## Spam detector
 class ExpiringCache(dict):
     def __init__(self, seconds: float):
@@ -105,14 +240,14 @@ class CooldownByContent(commands.CooldownMapping):
 
 
 class SpamChecker:
-    ""This spam checker does a few things.
+    """This spam checker does a few things.
     1) It checks if a user has spammed more than 10 times in 12 seconds
     2) It checks if the content has been spammed 15 times in 17 seconds.
     3) It checks if new users have spammed 30 times in 35 seconds.
     4) It checks if "fast joiners" have spammed 10 times in 12 seconds.
     The second case is meant to catch alternating spam bots while the first one
     just catches regular singular spam bots.
-    ""
+    """
 
     def __init__(self):
         self.by_content = CooldownByContent.from_cooldown(
@@ -152,7 +287,7 @@ class SpamChecker:
             if bucket and bucket.update_rate_limit(current):
                 return True
 
-        if self.is_new(message.author):  # type: ignore
+        if self.is_new(message.author):
             new_bucket = self.new_user.get_bucket(message)
             if new_bucket and new_bucket.update_rate_limit(current):
                 return True
@@ -185,7 +320,7 @@ class SpamChecker:
         member: discord.Member,
         message: discord.Message,
     ) -> None:
-        if not db.raid_enabled(guild_id):
+        if not raid_enabled(guild_id):
             return
 
         checker = self._spam_check[guild_id]
@@ -195,12 +330,7 @@ class SpamChecker:
         try:
             await member.ban(reason="Auto-ban for spamming")
         except discord.HTTPException:
-            log.info(
-                "[RoboMod] Failed to ban %s (ID: %s) from server %s.",
-                member,
-                member.id,
-                member.guild,
-            )
+            pass
         else:
             await self.bot.log((guild_id, member), "Banned from server")
 
@@ -219,11 +349,8 @@ class SpamChecker:
             return
 
         guild_id = message.guild.id
-        config: ModConfig = await db.get_guild_config(guild_id)
-        if config is None:
-            return
 
-        await self.check_raid(config, guild_id, author, message)
+        await self.check_raid(guild_id, author, message)
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -253,17 +380,6 @@ class SpamChecker:
         e.add_field(
             name="Created", value=time.format_relative(member.created_at), inline=False
         )
-
-        if config.requires_migration:
-            await self.suggest_automod_migration(config, e, guild_id)
-            return
-
-        if config.broadcast_webhook:
-            try:
-                await config.broadcast_webhook.send(embed=e)
-            except (discord.Forbidden, discord.NotFound):
-                async with self._disable_lock:
-                    await self.disable_automod_broadcast(guild_id)
 
     async def start_lockdown(
         self,
@@ -309,12 +425,12 @@ class SpamChecker:
                         }
                     )
 
-        query = ""
+        query = """
             INSERT INTO guild_lockdowns(guild_id, channel_id, allow, deny)
             SELECT d.guild_id, d.channel_id, d.allow, d.deny
             FROM jsonb_to_recordset($1::jsonb) AS d(guild_id BIGINT, channel_id BIGINT, allow BIGINT, deny BIGINT)
             ON CONFLICT (guild_id, channel_id) DO NOTHING
-        ""
+        """
         await self.bot.pool.execute(query, records)
         return success, failures
 
@@ -354,4 +470,3 @@ class SpamChecker:
                 failures.append(channel)
 
         return failures
-"""

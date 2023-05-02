@@ -6,6 +6,7 @@
     "command_fail": {
         "no_admin": "You don't have permissions to use this command, only admins can use it.",
         "no_mod": "Only server admins and moderation roles can use this command.",
+        "not_own_settings": "Only the user that used this command can edit the settings.",
         "forbidden": "I don't have enough permissions to do this."
     },
     "moderation": {
@@ -52,10 +53,21 @@
             "page": "Page"
         }
     },
-    "security": {
-        "antispam": {
-            "on": "Antispam enabled successfully ✅",
-            "off": "Antispam disabled successfully"
-        }
+    "antispam": {
+        "on": "Antispam enabled successfully ✅\nSpam messages will be blocked from now on",
+        "off": "Antispam disabled successfully",
+        "choose": "Choose punishments...",
+        "config": "Configured punishments for antispam ✅",
+        "choose_channel": "Choose notification channel...",
+        "notify": "Configured notification channel for antispam ✅: {channel}",
+        "blocked": "{bot} - Your message was blocked for spam"
+    },
+    "punishments": {
+        "warn": "Warn",
+        "min_mute": "5 minutes mute",
+        "hour_mute": "1 hour mute",
+        "day_mute": "1 day mute",
+        "kick": "Kick",
+        "ban": "Ban"
     }
 }
