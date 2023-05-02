@@ -19,7 +19,6 @@
             "nick": "Nick",
             "status": "Status",
             "voice": "In Voice",
-            "game": "Game",
             "toprole": "Highest Role",
             "created_at": "Account Created",
             "joined_at": "Join Date"

@@ -11,6 +11,7 @@ from discord.components import SelectOption
 from discord.errors import Forbidden
 from discord.ext import commands
 from discord.interactions import Interaction
+from discord.utils import format_dt
 
 from utils import (
     _T,
@@ -265,9 +266,9 @@ class Security(commands.Cog):
         e.set_author(name=str(member), icon_url=member.display_avatar.url)
         e.add_field(name="ID", value=member.id)
         assert member.joined_at is not None
-        e.add_field(name="Joined", value=time.format_dt(member.joined_at, "F"))
+        e.add_field(name="Joined", value=format_dt(member.joined_at, "F"))
         e.add_field(
-            name="Created", value=time.format_relative(member.created_at), inline=False
+            name="Created", value=format_dt(member.created_at, "R"), inline=False
         )
         await channel.send(embed=e)
 
