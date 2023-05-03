@@ -58,9 +58,21 @@ class Global(commands.Cog):
 
     @commands.command()
     @commands.check(is_admin)
+    async def adminhelp(self, ctx: commands.Context):
+        embed = embed_info("Admin commands")
+        embed.add_field(name="sync", value="Sync app commands")
+        embed.add_field(
+            name="leave [server_id]", value="The bot leaves the given server"
+        )
+        embed.add_field(name="info", value="Panel with bot info and performance")
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.check(is_admin)
     async def sync(self, ctx: commands.Context):
         await self.bot.tree.sync()
         await ctx.message.delete()
+        await ctx.send(embed=embed_success("Commands synced!"), delete_after=5)
 
     @commands.command()
     @commands.check(is_admin)
@@ -133,7 +145,7 @@ class Global(commands.Cog):
         modal = BugModal()
         await i.response.send_modal(modal)
 
-    @app_commands.command()
+    @app_commands.command(description="General bot info")
     @app_commands.guild_only()
     async def help(self, i: discord.Interaction):
         embed = embed_info(_T(i, "help.desc"))
@@ -152,7 +164,7 @@ class Global(commands.Cog):
         embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnings.2"))
         await i.response.send_message(embed=embed)
 
-    @app_commands.command()
+    @app_commands.command(description="Change bot language for this server")
     @app_commands.choices(
         language=[Choice(name=k, value=v) for k, v in LANGUAGES.items()]
     )

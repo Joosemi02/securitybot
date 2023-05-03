@@ -413,7 +413,7 @@ class Security(commands.Cog):
         )
         await self.bot.log(i, msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Broadcast new member join in the chosen channel")
     @app_commands.describe(
         suspicious_join_channel="Channel to broadcast new member joins and their potential risk."
     )
@@ -434,7 +434,7 @@ class Security(commands.Cog):
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Prevent Bot Raids with several methods")
     @app_commands.describe(
         punishment="Choose a punishment for spammers when a raid is detected."
     )
@@ -459,7 +459,7 @@ class Security(commands.Cog):
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
-    @app_commands.command()
+    @app_commands.command(description="Filter phishing and spam links in your server")
     @app_commands.describe(
         punishment="Choose a punishment for when a malicious link is detected."
     )
