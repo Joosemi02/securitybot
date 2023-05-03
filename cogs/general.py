@@ -1,8 +1,8 @@
 import subprocess
 import time
 
-import discord
-from discord import app_commands
+import discord.ui
+from discord import Interaction, SelectOption, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
@@ -30,7 +30,7 @@ class BugModal(discord.ui.Modal):
         min_length=20,
     )
 
-    async def on_submit(self, i: discord.Interaction):
+    async def on_submit(self, i: Interaction):
         await i.response.defer()
         channel = i.client.get_channel(BUG_REPORT_CHANNEL)
         e = embed_info(self.info.value)
@@ -44,7 +44,39 @@ class BugModal(discord.ui.Modal):
         )
 
 
-class Global(commands.Cog):
+class HelpView(discord.ui.View):
+    def __init__(self, bot, main_embed):
+        self.bot: MyBot = bot
+        self.main_embed = main_embed
+        self.message: discord.Message
+        super().__init__()
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
+
+    @discord.ui.select(
+        options=[
+            SelectOption(label="Moderation commands", value="Moderation", emoji="🔨"),
+            SelectOption(label="Security commands", value="Security", emoji="🛡️"),
+            SelectOption(label="Warning commands", value="Warnings", emoji="🪧"),
+            SelectOption(label="General commands", value="General", emoji="🔧"),
+            SelectOption(label="Bot info", value="Main", emoji="ℹ️", default=True),
+        ],
+        placeholder="Help by category",
+        max_values=1,
+    )
+    async def helpmenu(self, i: Interaction, select: discord.ui.Select):
+        category = select.values[0]
+        embed = embed_info(f"{category} commands")
+        if category == "Main":
+            embed = self.main_embed
+        else:
+            for command in self.bot.get_cog(category).get_app_commands():
+                embed.add_field(name=f"/{command.name}", value=command.description)
+        await i.response.edit_message(embed=embed)
+
+
+class General(commands.Cog):
     def __init__(self, bot):
         self.bot: MyBot = bot
 
@@ -141,13 +173,14 @@ class Global(commands.Cog):
 
     @app_commands.command(description="Use this command to report bot bugs")
     @app_commands.guild_only()
-    async def report(self, i: discord.Interaction):
+    async def report(self, i: Interaction):
         modal = BugModal()
         await i.response.send_modal(modal)
 
     @app_commands.command(description="General bot info")
     @app_commands.guild_only()
-    async def help(self, i: discord.Interaction):
+    async def help(self, i: Interaction):
+        await i.response.defer()
         embed = embed_info(_T(i, "help.desc"))
         embed.add_field(name=_T(i, "help.antispam.1"), value=_T(i, "help.antispam.2"))
         embed.add_field(name=_T(i, "help.antiraid.1"), value=_T(i, "help.antiraid.2"))
@@ -162,7 +195,9 @@ class Global(commands.Cog):
             name=_T(i, "help.moderation.1"), value=_T(i, "help.moderation.2")
         )
         embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnings.2"))
-        await i.response.send_message(embed=embed)
+
+        view = HelpView(self.bot, embed)
+        view.message = await i.followup.send(embed=embed, view=view)
 
     @app_commands.command(description="Change bot language for this server")
     @app_commands.choices(
@@ -172,7 +207,7 @@ class Global(commands.Cog):
     @app_commands.default_permissions()
     async def config(
         self,
-        i: discord.Interaction,
+        i: Interaction,
         language: Choice[str] = None,
         logs_channel: discord.TextChannel = None,
     ):
@@ -187,4 +222,4 @@ class Global(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(Global(bot))
+    await bot.add_cog(General(bot))
