@@ -77,7 +77,7 @@ def get_guild_prefs(guild_id: int, key):
     return guilds_cache[guild_id][key]
 
 
-async def configure_punihsments(guild_id, category: str, punishment: str):
+async def configure_punishments(guild_id, category: str, punishment: str):
     if punishment == "disabled":
         await db.guilds.update_one(
             {"_id": guild_id}, {"$set": {f"{category}.enabled": False}}
@@ -202,9 +202,13 @@ class Paginator:
                 value=f"{reason}\n{date}",
                 inline=False,
             )
-        return self._set_embed_footer_author(
-            embed, "warnings.display.page", "warnings.display.title"
-        )
+            embed.set_footer(
+                text=f"{_T(self.i, 'warnings.display.page')} {self.page}/{self.total_pages}"
+            )
+            embed.set_author(
+                name=f"{_T(self.i, 'warnings.display.title')} {self.i.user.name}",
+                icon_url=self.i.user.display_avatar.url,
+            )
 
     def _build_bans_embed(self):
         self.objects: list[BanEntry]
@@ -218,18 +222,14 @@ class Paginator:
                 value=f"{_T(self.i, 'moderation.bans.reason')}: {ban.reason or '---'}",
                 inline=False,
             )
-        return self._set_embed_footer_author(
-            embed, "moderation.bans.page", "moderation.bans.title"
-        )
 
-    def _set_embed_footer_author(self, embed, footer_key, author_key):
-        embed.set_footer(
-            text=f"{_T(self.i, footer_key)} {self.page}/{self.total_pages}"
-        )
-        embed.set_author(
-            name=f"{_T(self.i, author_key)} {self.i.user.name}",
-            icon_url=self.i.user.display_avatar.url,
-        )
+            embed.set_footer(
+                text=f"{_T(self.i, 'moderation.bans.page')} {self.page}/{self.total_pages}"
+            )
+            embed.set_author(
+                name=_T(self.i, "moderation.bans.title"),
+                icon_url=self.i.user.display_avatar.url,
+            )
         return embed
 
     @property
