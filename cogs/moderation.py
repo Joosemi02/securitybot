@@ -107,11 +107,13 @@ class Moderation(commands.Cog):
     async def clear(
         self, i: Interaction, amount: app_commands.Range[int, 1, MAX_CLEAR_AMOUNT]
     ):
-        await i.response.defer()
+        await i.response.defer(ephemeral=True)
         try:
             await i.channel.purge(limit=amount, bulk=True)
         except Forbidden:
-            return await i.followup.send(embed=embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i,
@@ -120,6 +122,7 @@ class Moderation(commands.Cog):
             channel=i.channel.mention,
         )
 
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Get info of this user.")
@@ -206,7 +209,9 @@ class Moderation(commands.Cog):
         try:
             await channel.edit(slowmode_delay=time)
         except Forbidden:
-            return await i.followup.send(embed=embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i, "moderation.slowmode", channel=i.channel.mention, time=time
