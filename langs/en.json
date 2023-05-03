@@ -4,6 +4,7 @@
         "no_admin": "You don't have permissions to use this command, only admins can use it.",
         "no_mod": "Only server admins and moderation roles can use this command.",
         "not_own_settings": "Only the user that used this command can edit the settings.",
+        "not_own_paginator": "Only the user that used this command can turn pages.",
         "forbidden": "I don't have enough permissions to do this.",
         "no_config": "Choose settings to edit."
     },
@@ -21,6 +22,13 @@
             "created_at": "Account Created",
             "joined_at": "Join Date"
         },
+        "bans": {
+            "title": "Showing banned members",
+            "reason": "Reason",
+            "page": "Page",
+            "no_bans": "No banned members found 🔨"
+        },
+        "unban": "{member} was unbanned",
         "serverinfo": {
             "title": "Server Info",
             "server_id": "Server ID",
@@ -43,7 +51,6 @@
         "unwarn": "The following warning was removed from {member}:\n{warning}.",
         "display": {
             "no_warns": "No warnings found 👏",
-            "not_my_warns": "This is not your warning log.",
             "title": "Warnings",
             "reason": "Reason",
             "date": "Date",
