@@ -12,7 +12,7 @@ from utils import _T, MyBot, embed_fail
 
 bot: commands.Bot | MyBot = MyBot(
     command_prefix=commands.when_mentioned,
-    intents=discord.Intents.default(),
+    intents=discord.Intents.all(),
     application_id=APPLICATION_ID,
 )
 bot.start_time = time.time()

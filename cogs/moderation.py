@@ -171,9 +171,7 @@ class Moderation(commands.Cog):
             name=_T(i, "moderation.serverinfo.members"), value=server.member_count
         )
 
-        online = len(
-            [m for m in server.members if m.status in [Status.online, Status.dnd]]
-        )
+        online = len([m for m in server.members if m.status != Status.offline])
         embed.add_field(name=_T(i, "moderation.serverinfo.online"), value=str(online))
         channels = len(server.text_channels)
         embed.add_field(
