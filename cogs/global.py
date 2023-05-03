@@ -3,9 +3,10 @@ import time
 
 import discord
 from discord import app_commands
+from discord.app_commands import Choice
 from discord.ext import commands
 
-from constants import BUG_REPORT_CHANNEL
+from constants import BUG_REPORT_CHANNEL, LANGUAGES
 from utils import (
     _T,
     MyBot,
@@ -14,6 +15,7 @@ from utils import (
     embed_success,
     is_admin,
     set_default_prefs,
+    set_guild_data,
 )
 
 
@@ -149,6 +151,16 @@ class Global(commands.Cog):
         )
         embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnings.2"))
         await i.response.send_message(embed=embed)
+
+    @app_commands.command()
+    @app_commands.choices(
+        language=[Choice(name=k, value=v) for k, v in LANGUAGES.items()]
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def language(self, i: discord.Interaction, language: Choice[str]):
+        await set_guild_data(i.guild_id, "lang", language.value)
+        await i.followup.send(embed=embed_success(_T(i, "language")))
 
 
 async def setup(bot):

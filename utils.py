@@ -12,6 +12,7 @@ from constants import (
     ADMINS,
     DEFAULT_GUILD_SETTINGS,
     EMBED_COLOR,
+    LANGUAGES,
     MONGODB_CONNECTION_URI,
 )
 
@@ -84,7 +85,12 @@ async def configure_punihsments(guild_id, category: str, punishment: str):
     else:
         await db.guilds.update_one(
             {"_id": guild_id},
-            {"$set": {f"{category}.enabled": True, f"{category}.punishments": [punishment]}},
+            {
+                "$set": {
+                    f"{category}.enabled": True,
+                    f"{category}.punishments": [punishment],
+                }
+            },
         )
         guilds_cache[guild_id][category]["enabled"] = True
         guilds_cache[guild_id][category]["punishments"] = [punishment]
@@ -93,11 +99,9 @@ async def configure_punihsments(guild_id, category: str, punishment: str):
 # TRANSLATIONS
 def load_languages():
     translations = {}
-    for filename in os.listdir("langs"):
-        if filename.endswith(".json"):
-            lang = filename[:-5]
-            with open(f"langs/{filename}", "r", encoding="utf-8") as f:
-                translations[lang] = json.load(f)
+    for lang in LANGUAGES.values():
+        with open(f"langs/{lang}.json", "r", encoding="utf-8") as f:
+            translations[lang] = json.load(f)
     return translations
 
 

@@ -1,8 +1,5 @@
 {
-    "language_info": {
-        "name": "English",
-        "emoji": ":flag_us:"
-    },
+    "language": "Language updated!",
     "command_fail": {
         "no_admin": "You don't have permissions to use this command, only admins can use it.",
         "no_mod": "Only server admins and moderation roles can use this command.",

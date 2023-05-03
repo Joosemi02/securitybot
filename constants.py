@@ -10,7 +10,7 @@ TOKEN = os.getenv("TOKEN")
 
 ADMINS = [int(os.getenv("ID"))]
 
-EMBED_COLOR = 0x000
+EMBED_COLOR = 0x3498DB
 DEFAULT_GUILD_SETTINGS = {
     "lang": "en",
     "logs": 0,
@@ -23,3 +23,5 @@ DEFAULT_GUILD_SETTINGS = {
 MAX_CLEAR_AMOUNT = 300
 
 BUG_REPORT_CHANNEL = 0
+
+LANGUAGES = {"English": "en"}
