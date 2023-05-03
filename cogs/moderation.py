@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from discord import Embed, Interaction, Member, Status, TextChannel, app_commands
 from discord.app_commands import Choice
-from discord.errors import Forbidden, NotFound
+from discord.errors import Forbidden
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
@@ -109,8 +109,7 @@ class Moderation(commands.Cog):
     ):
         await i.response.defer()
         try:
-            with contextlib.suppress(NotFound):
-                await i.channel.purge(limit=amount, bulk=True)
+            await i.channel.purge(limit=amount, bulk=True)
         except Forbidden:
             return await i.followup.send(embed=embed_fail(_T(i, "command_fail.forbidden")))
 
@@ -121,7 +120,6 @@ class Moderation(commands.Cog):
             channel=i.channel.mention,
         )
 
-        await i.followup.send(embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Get info of this user.")
