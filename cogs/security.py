@@ -1,6 +1,6 @@
-import time
 import contextlib
 import datetime
+import time
 from collections import defaultdict
 from typing import Iterable, List, MutableMapping, Optional
 
@@ -265,17 +265,17 @@ class Security(commands.Cog):
         e.add_field(
             name="Created", value=format_dt(member.created_at, "R"), inline=False
         )
-        await channel.send(embed=e)
+        await self.bot.get_channel(channel).send(embed=e)
 
-    async def execute_punishments(self, member: discord.Member, guild_id, punishments):
+    async def execute_punishments(self, member: discord.Member, guild_id, punishments, reason: str):
         punishment_msg = None
         if "warn" in punishments:
-            exec_warn(guild_id, member.id, "Anti Spam")
+            exec_warn(guild_id, member.id, reason)
             punishment_msg = _T(
                 guild_id,
                 "warnings.punished",
                 member=member.display_name,
-                reason="Anti Spam",
+                reason=reason,
             )
         if "day_mute" in punishments:
             await member.timeout(datetime.timedelta(days=1))
@@ -283,7 +283,7 @@ class Security(commands.Cog):
                 guild_id,
                 "punishments_log.day_mute",
                 member=member.display_name,
-                reason="Anti Spam",
+                reason=reason,
             )
         elif "hour_mute" in punishments:
             await member.timeout(datetime.timedelta(hours=1))
@@ -291,7 +291,7 @@ class Security(commands.Cog):
                 guild_id,
                 "punishments_log.hour_mute",
                 member=member.display_name,
-                reason="Anti Spam",
+                reason=reason,
             )
         elif "min_mute" in punishments:
             await member.timeout(datetime.timedelta(minutes=5))
@@ -299,23 +299,23 @@ class Security(commands.Cog):
                 guild_id,
                 "punishments_log.min_mute",
                 member=member.display_name,
-                reason="Anti Spam",
+                reason=reason,
             )
         if "ban" in punishments:
-            await member.ban(reason="Anti Spam")
+            await member.ban(reason=reason)
             punishment_msg = _T(
                 guild_id,
                 "punishments_log.ban",
                 member=member.display_name,
-                reason="Anti Spam",
+                reason=reason,
             )
         elif "kick" in punishments:
-            await member.kick(reason="Anti Spam")
+            await member.kick(reason=reason)
             punishment_msg = _T(
                 guild_id,
                 "punishments_log.kick",
                 member=member.display_name,
-                reason="Anti Spam",
+                reason=reason,
             )
 
         await self.bot.log((guild_id, self.bot.user), punishment_msg)
@@ -335,7 +335,7 @@ class Security(commands.Cog):
             return
 
         with contextlib.suppress(Forbidden):
-            await self.execute_punishments(member, guild_id, punishments)
+            await self.execute_punishments(member, guild_id, punishments, "Anti Spam")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -351,10 +351,10 @@ class Security(commands.Cog):
         guild_id = message.guild.id
 
         await self.check_raid(guild_id, author, message)
-        print(len(self.links))
         if any(link in message.content for link in self.links):
             with contextlib.suppress(Forbidden):
-                await self.execute_punishments()
+                await message.delete()
+                await self.execute_punishments(author, guild_id, get_punishments(guild_id, "link_filter"))
 
     @commands.Cog.listener()
     async def on_automod_action(self, execution: discord.AutoModAction):
@@ -363,7 +363,7 @@ class Security(commands.Cog):
             return
         if (punishments := get_punishments(guild_id, "antispam")) == []:
             return
-        member = await self.execute_punishments(member, guild_id, punishments)
+        member = await self.execute_punishments(member, guild_id, punishments, "Anti Spam")
 
     async def enable_antispam(self, i: Interaction, enabled):
         actions = [
