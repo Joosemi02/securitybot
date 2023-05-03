@@ -157,15 +157,15 @@ def is_admin(object_: Interaction | commands.Context):
 
 
 # PAGINATOR
-
-
 class Paginator:
     def __init__(
         self,
         interaction: Interaction,
         objects: dict[str, set[str, datetime]] | list[BanEntry],
+        username=None,
         **kwargs,
     ) -> None:
+        self.username = username
         self.i: Interaction = interaction
         self.ITEMS_PER_PAGE = 10
         self.type_ = "warnings" if isinstance(objects, dict) else "bans"
@@ -206,9 +206,10 @@ class Paginator:
                 text=f"{_T(self.i, 'warnings.display.page')} {self.page}/{self.total_pages}"
             )
             embed.set_author(
-                name=f"{_T(self.i, 'warnings.display.title')} {self.i.user.name}",
+                name=f"{_T(self.i, 'warnings.display.title')} {self.username}",
                 icon_url=self.i.user.display_avatar.url,
             )
+        return embed
 
     def _build_bans_embed(self):
         self.objects: list[BanEntry]

@@ -51,7 +51,7 @@
         "unwarn": "The following warning was removed from {member}:\n{warning}.",
         "display": {
             "no_warns": "No warnings found 👏",
-            "title": "Warnings",
+            "title": "Warnings for",
             "reason": "Reason",
             "date": "Date",
             "page": "Page"

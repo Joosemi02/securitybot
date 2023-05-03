@@ -57,7 +57,7 @@ class Warnings(commands.Cog):
         else:
             warns = {}
 
-        paginator = Paginator(interaction=i, objects=warns)
+        paginator = Paginator(interaction=i, objects=warns, username=member.name)
         await paginator.send_message(i)
 
     @app_commands.command(description="Use this command to check a user's warnings")
