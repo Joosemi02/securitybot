@@ -1,4 +1,3 @@
-import contextlib
 from datetime import timedelta
 
 from discord import Embed, Interaction, Member, Status, TextChannel, app_commands
@@ -7,7 +6,7 @@ from discord.errors import Forbidden
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
-from utils import _T, MyBot, embed_fail, embed_success
+from utils import _T, MyBot, Paginator, embed_fail, embed_success
 
 
 class Moderation(commands.Cog):
@@ -219,6 +218,14 @@ class Moderation(commands.Cog):
 
         await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
+
+    @app_commands.command(description="Get a list of banned members")
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def bans(self, i: Interaction):
+        bans = [entry async for entry in i.guild.bans()]
+        paginator = Paginator(interaction=i, objects=bans)
+        await paginator.send_message(i)
 
 
 async def setup(bot):
