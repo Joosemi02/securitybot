@@ -41,11 +41,12 @@ class MyBot(commands.Bot):
         if channel := self.get_channel(guilds_cache[guild_id]["logs"]):
             log_embed = embed_info(msg)
             log_embed.add_field(
-                name=_T(guild_id, ""),
+                name=_T(guild_id, "punishments_log.author"),
                 value=f"{user.name}#{user.discriminator}\nID: ``{user.id}``",
             )
-            log_embed.set_footer(text=format_dt(datetime.now()))
-            await channel.send(log_embed)
+            log_embed.add_field(name="Time", value=format_dt(datetime.now()))
+            log_embed.set_author(name=user.name, icon_url=user.display_avatar.url)
+            await channel.send(embed=log_embed)
 
 
 # DATABASE
