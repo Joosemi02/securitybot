@@ -16,7 +16,7 @@ from discord.utils import format_dt, utcnow
 from utils import (
     _T,
     MyBot,
-    configure_punihsments,
+    configure_punishments,
     embed_success,
     get_guild_prefs,
     get_punishments,
@@ -151,8 +151,8 @@ class NotifySelect(discord.ui.ChannelSelect):
         else:
             channel_id = 0
             channel_name = "---"
-        await set_guild_data(i.guild_id, "antispam.notify", channel_id)
-        msg = _T(i, "antispam.notify", channel=channel_name)
+        await set_guild_data(i.guild_id, f"{self.view.category}.notify", channel_id)
+        msg = _T(i, "security.notify", module=self.view.category, channel=channel_name)
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
@@ -173,16 +173,19 @@ class ActionSelect(discord.ui.Select):
         self.bot = bot
 
     async def callback(self, i: Interaction):
-        await set_guild_data(i.guild_id, "antispam.punishments", self.values)
-        msg = _T(i, "antispam.config")
+        await set_guild_data(
+            i.guild_id, f"{self.view.category}.punishments", self.values
+        )
+        msg = _T(i, "security.config", module=self.view.category)
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 
 
 class ConfigurationView(discord.ui.View):
-    def __init__(self, i: Interaction, bot):
+    def __init__(self, i: Interaction, bot, category: str):
         super().__init__()
         self.i = i
+        self.category = category
         actions = {
             "warn": "🪧",
             "min_mute": "⌛",
@@ -191,13 +194,13 @@ class ConfigurationView(discord.ui.View):
             "kick": "🦶",
             "ban": "🔨",
         }
-        placeholder = _T(i, "antispam.choose")
+        placeholder = _T(i, "punishments.choose")
         options = [
             SelectOption(
                 label=_T(i, f"punishments.{action}"),
                 value=action,
                 emoji=emoji,
-                default=action in get_punishments(i.guild_id, "antispam"),
+                default=action in get_punishments(i.guild_id, category),
             )
             for action, emoji in actions.items()
         ]
@@ -209,7 +212,7 @@ class ConfigurationView(discord.ui.View):
                 bot=bot,
             )
         )
-        self.add_item(NotifySelect(_T(i, "antispam.choose_channel"), bot))
+        self.add_item(NotifySelect(_T(i, "punishments.choose_channel"), bot))
 
     async def interaction_check(self, i: Interaction):
         if self.i.user.id == i.user.id:
@@ -267,7 +270,9 @@ class Security(commands.Cog):
         )
         await self.bot.get_channel(channel).send(embed=e)
 
-    async def execute_punishments(self, member: discord.Member, guild_id, punishments, reason: str):
+    async def execute_punishments(
+        self, member: discord.Member, guild_id, punishments, reason: str
+    ):
         punishment_msg = None
         if "warn" in punishments:
             exec_warn(guild_id, member.id, reason)
@@ -354,7 +359,9 @@ class Security(commands.Cog):
         if any(link in message.content for link in self.links):
             with contextlib.suppress(Forbidden):
                 await message.delete()
-                await self.execute_punishments(author, guild_id, get_punishments(guild_id, "link_filter"))
+                await self.execute_punishments(
+                    author, guild_id, get_punishments(guild_id, "linkfilter")
+                )
 
     @commands.Cog.listener()
     async def on_automod_action(self, execution: discord.AutoModAction):
@@ -363,12 +370,16 @@ class Security(commands.Cog):
             return
         if (punishments := get_punishments(guild_id, "antispam")) == []:
             return
-        member = await self.execute_punishments(member, guild_id, punishments, "Anti Spam")
+        member = await self.execute_punishments(
+            member, guild_id, punishments, "Anti Spam"
+        )
 
     async def enable_antispam(self, i: Interaction, enabled):
         actions = [
             discord.AutoModRuleAction(
-                custom_message=_T(i, "antispam.blocked", bot=self.bot.user.name)
+                custom_message=_T(
+                    i, "security.blocked", module="antispam", bot=self.bot.user.name
+                )
             ),
         ]
         rules = await i.guild.fetch_automod_rules()
@@ -402,8 +413,22 @@ class Security(commands.Cog):
         await i.response.defer()
         await self.enable_antispam(i, enabled)
 
-        msg = _T(i, f"antispam.{'on' if enabled else 'off'}")
-        view = ConfigurationView(i, self.bot)
+        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Antispam")
+        view = ConfigurationView(i, self.bot, "antispam")
+        view.message = await i.followup.send(
+            embed=embed_success(msg),
+            view=view if enabled else discord.components.MISSING,
+        )
+        await self.bot.log(i, msg)
+
+    @app_commands.command(description="Filter phishing and spam links in your server")
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def linkfilter(self, i, enabled: bool):
+        await i.response.defer()
+
+        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Malicious link filter")
+        view = ConfigurationView(i, self.bot, "linkfilter")
         view.message = await i.followup.send(
             embed=embed_success(msg),
             view=view if enabled else discord.components.MISSING,
@@ -452,33 +477,8 @@ class Security(commands.Cog):
     async def antiraid(self, i, punishment: Choice[str]):
         await i.response.defer()
 
-        await configure_punihsments(i.guild_id, "antiraid", punishment.value)
+        await configure_punishments(i.guild_id, "antiraid", punishment.value)
         msg = _T(i, "antiraid")
-        await i.followup.send(embed=embed_success(msg))
-        await self.bot.log(i, msg)
-
-    @app_commands.command(description="Filter phishing and spam links in your server")
-    @app_commands.describe(
-        punishment="Choose a punishment for when a malicious link is detected."
-    )
-    @app_commands.choices(
-        punishment=[
-            Choice(name="Disable", value="disable"),
-            Choice(name="Warn", value="warn"),
-            Choice(name="5 min mute", value="min_mute"),
-            Choice(name="1 hour mute", value="hour_mute"),
-            Choice(name="1 day mute", value="day_mute"),
-            Choice(name="Kick", value="kick"),
-            Choice(name="Ban", value="ban"),
-        ]
-    )
-    @app_commands.guild_only()
-    @app_commands.default_permissions()
-    async def linkfilter(self, i, punishment: Choice[str]):
-        await i.response.defer()
-
-        await configure_punihsments(i.guild_id, "link_filter", punishment.value)
-        msg = _T(i, "linkfilter")
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
 

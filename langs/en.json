@@ -57,19 +57,18 @@
             "page": "Page"
         }
     },
-    "antispam": {
-        "on": "Antispam enabled successfully ✅\nSpam messages will be blocked from now on",
-        "off": "Antispam disabled successfully",
-        "choose": "Choose punishments...",
-        "config": "Configured punishments for antispam ✅",
-        "choose_channel": "Choose notification channel...",
-        "notify": "Configured notification channel for antispam ✅: {channel}",
-        "blocked": "{bot} - Your message was blocked for spam"
+    "security": {
+        "on": "{module} enabled successfully ✅\nSpam messages will be blocked from now on",
+        "off": "{module} disabled successfully",
+        "config": "Configured punishments for {module} ✅",
+        "notify": "Configured notification channel for {module} ✅: {channel}",
+        "blocked": "{bot} - Your message was blocked by {module}"
     },
     "antiraid": "Configured antiraid",
-    "linkfilter": "Configured malicious link filter",
     "joinwatch": "Configured joinwatch at channel: {channel}",
     "punishments": {
+        "choose": "Choose punishments...",
+        "choose_channel": "Choose notification channel...",
         "warn": "Warn",
         "min_mute": "5 minutes mute",
         "hour_mute": "1 hour mute",
