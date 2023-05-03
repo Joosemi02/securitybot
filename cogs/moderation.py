@@ -86,7 +86,9 @@ class Moderation(commands.Cog):
         try:
             await member.timeout(timedelta(seconds=time.value), reason=reason)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(
+                embed=embed_fail(_T(i, "command_fail.forbidden"))
+            )
 
         punishment_msg = _T(
             i,
@@ -110,7 +112,7 @@ class Moderation(commands.Cog):
             with contextlib.suppress(NotFound):
                 await i.channel.purge(limit=amount, bulk=True)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(embed=embed_fail(_T(i, "command_fail.forbidden")))
 
         punishment_msg = _T(
             i,
@@ -206,7 +208,7 @@ class Moderation(commands.Cog):
         try:
             await channel.edit(slowmode_delay=time)
         except Forbidden:
-            return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
+            return await i.followup.send(embed=embed_fail(_T(i, "command_fail.forbidden")))
 
         punishment_msg = _T(
             i, "moderation.slowmode", channel=i.channel.mention, time=time
