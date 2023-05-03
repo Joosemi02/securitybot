@@ -127,8 +127,7 @@ class RaidChecker:
             self.fast_joiners[member.id] = True
         return is_fast
 
-    def __init__(self, bot: MyBot):
-        self.bot = bot
+    def __init__(self):
         self._spam_check: defaultdict[int, RaidChecker] = defaultdict(RaidChecker)
 
 
