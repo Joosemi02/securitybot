@@ -223,6 +223,7 @@ class Moderation(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def bans(self, i: Interaction):
+        await i.response.defer()
         bans = [entry async for entry in i.guild.bans()]
         paginator = Paginator(interaction=i, objects=bans)
         await paginator.send_message(i)
