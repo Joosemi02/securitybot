@@ -425,6 +425,7 @@ class Security(commands.Cog):
         suspicious_join_channel: discord.TextChannel,
         enabled: bool,
     ):
+        await i.response.defer()
         await set_guild_data(
             i.guild_id, "suspicious_joins", suspicious_join_channel.id if enabled else 0
         )
