@@ -7,16 +7,8 @@ from discord.app_commands import Choice
 from discord.ext import commands
 
 from constants import BUG_REPORT_CHANNEL, LANGUAGES
-from utils import (
-    _T,
-    MyBot,
-    embed_fail,
-    embed_info,
-    embed_success,
-    is_admin,
-    set_default_prefs,
-    set_guild_data,
-)
+from utils import (_T, MyBot, embed_fail, embed_info, embed_success, is_admin,
+                   set_default_prefs, set_guild_data)
 
 
 class BugModal(discord.ui.Modal):
@@ -171,6 +163,7 @@ class Global(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def language(self, i: discord.Interaction, language: Choice[str]):
+        await i.response.defer()
         await set_guild_data(i.guild_id, "lang", language.value)
         await i.followup.send(embed=embed_success(_T(i, "language")))
 
