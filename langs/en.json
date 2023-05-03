@@ -1,10 +1,11 @@
 {
-    "language": "Language updated!",
+    "config": "Bot settings updated!",
     "command_fail": {
         "no_admin": "You don't have permissions to use this command, only admins can use it.",
         "no_mod": "Only server admins and moderation roles can use this command.",
         "not_own_settings": "Only the user that used this command can edit the settings.",
-        "forbidden": "I don't have enough permissions to do this."
+        "forbidden": "I don't have enough permissions to do this.",
+        "no_config": "Choose settings to edit."
     },
     "moderation": {
         "kick": "{member} was kicked from the server {reason}.",
