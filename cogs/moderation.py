@@ -1,8 +1,9 @@
+import contextlib
 from datetime import timedelta
 
-from discord import Embed, Interaction, Member, TextChannel, app_commands
+from discord import Embed, Interaction, Member, Status, TextChannel, app_commands
 from discord.app_commands import Choice
-from discord.errors import Forbidden
+from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
@@ -106,7 +107,8 @@ class Moderation(commands.Cog):
     ):
         await i.response.defer()
         try:
-            await i.channel.purge(limit=amount, bulk=True)
+            with contextlib.suppress(NotFound):
+                await i.channel.purge(limit=amount, bulk=True)
         except Forbidden:
             return await i.followup.send(embed_fail(_T(i, "command_fail.forbidden")))
 
@@ -169,7 +171,9 @@ class Moderation(commands.Cog):
             name=_T(i, "moderation.serverinfo.members"), value=server.member_count
         )
 
-        online = len([m for m in server.members if m.status == "online"])
+        online = len(
+            [m for m in server.members if m.status in [Status.online, Status.dnd]]
+        )
         embed.add_field(name=_T(i, "moderation.serverinfo.online"), value=str(online))
         channels = len(server.text_channels)
         embed.add_field(
