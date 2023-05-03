@@ -1,23 +1,22 @@
+import time
 import contextlib
 import datetime
 from collections import defaultdict
-from datetime import time
 from typing import Iterable, List, MutableMapping, Optional
 
-import discord
-from discord import Interaction, app_commands
+import discord.ui
+from discord import Interaction, Member, Message, app_commands
 from discord.app_commands import Choice
 from discord.components import SelectOption
 from discord.errors import Forbidden
 from discord.ext import commands
 from discord.interactions import Interaction
-from discord.utils import format_dt
+from discord.utils import format_dt, utcnow
 
 from utils import (
     _T,
     MyBot,
     configure_punihsments,
-    embed_info,
     embed_success,
     get_guild_prefs,
     get_punishments,
@@ -54,7 +53,7 @@ class ExpiringCache(dict):
 
 
 class CooldownByContent(commands.CooldownMapping):
-    def _bucket_key(self, message: discord.Message) -> tuple[int, str]:
+    def _bucket_key(self, message: Message) -> tuple[int, str]:
         return (message.channel.id, message.content)
 
 
@@ -83,8 +82,8 @@ class RaidChecker:
             10, 12, commands.BucketType.channel
         )
 
-    def is_new(self, member: discord.Member) -> bool:
-        now = discord.utils.utcnow()
+    def is_new(self, member: Member) -> bool:
+        now = utcnow()
         seven_days_ago = now - datetime.timedelta(days=7)
         ninety_days_ago = now - datetime.timedelta(days=90)
         return (
@@ -93,7 +92,7 @@ class RaidChecker:
             and member.joined_at > seven_days_ago
         )
 
-    def is_spamming(self, message: discord.Message) -> bool:
+    def is_spamming(self, message: Message) -> bool:
         if message.guild is None:
             return False
 
@@ -116,8 +115,8 @@ class RaidChecker:
         content_bucket = self.by_content.get_bucket(message)
         return bool(content_bucket and content_bucket.update_rate_limit(current))
 
-    def is_fast_join(self, member: discord.Member) -> bool:
-        joined = member.joined_at or discord.utils.utcnow()
+    def is_fast_join(self, member: Member) -> bool:
+        joined = member.joined_at or utcnow()
         if self.last_join is None:
             self.last_join = joined
             return False
@@ -126,9 +125,6 @@ class RaidChecker:
         if is_fast:
             self.fast_joiners[member.id] = True
         return is_fast
-
-    def __init__(self):
-        self._spam_check: defaultdict[int, RaidChecker] = defaultdict(RaidChecker)
 
 
 # Views
@@ -355,6 +351,7 @@ class Security(commands.Cog):
         guild_id = message.guild.id
 
         await self.check_raid(guild_id, author, message)
+        print(len(self.links))
         if any(link in message.content for link in self.links):
             with contextlib.suppress(Forbidden):
                 await self.execute_punishments()
@@ -408,7 +405,8 @@ class Security(commands.Cog):
         msg = _T(i, f"antispam.{'on' if enabled else 'off'}")
         view = ConfigurationView(i, self.bot)
         view.message = await i.followup.send(
-            embed=embed_success(msg), view=view if enabled else discord.components.MISSING
+            embed=embed_success(msg),
+            view=view if enabled else discord.components.MISSING,
         )
         await self.bot.log(i, msg)
 
