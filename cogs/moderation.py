@@ -232,10 +232,23 @@ class Moderation(commands.Cog):
     @app_commands.guild_only()
     @app_commands.default_permissions()
     async def unban(self, i: Interaction, user: User):
+        await i.response.defer()
         await i.guild.unban(user)
-        await i.response.send_message(
-            embed=embed_success(_T(i, "moderation.unban", member=user.name))
-        )
+        msg = _T(i, "moderation.unban", member=user.name)
+        await i.followup.send(embed=embed_success(msg))
+        await self.bot.log(i, msg)
+
+    @app_commands.command(
+        description="Enable or disable server invites. They are turned off automatically when a raid is detected"
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def invites(self, i: Interaction, enabled: bool):
+        await i.response.defer()
+        await i.guild.edit(invites_disabled=enabled)
+        msg = _T(i, "moderation.invites", state="on" if enabled else "off")
+        await i.followup.send(embed=embed_success(msg))
+        await self.bot.log(i, msg)
 
 
 async def setup(bot):

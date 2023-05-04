@@ -43,7 +43,8 @@
             "emojis": "Number of emojis",
             "created_at": "Created At"
         },
-        "slowmode": "{channel} slowmode set to {time} seconds."
+        "slowmode": "{channel} slowmode set to {time} seconds.",
+        "invites": "Invites turned {state} for this server"
     },
     "warnings": {
         "punish": "{member} was warned for {reason}.",
