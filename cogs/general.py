@@ -199,9 +199,13 @@ class General(commands.Cog):
         view = HelpView(self.bot, embed)
         view.message = await i.followup.send(embed=embed, view=view)
 
-    @app_commands.command(description="Change bot language for this server")
+    @app_commands.command(description="Edit the bot settings for this server")
     @app_commands.choices(
         language=[Choice(name=k, value=v) for k, v in LANGUAGES.items()]
+    )
+    @app_commands.describe(
+        language="The general language for the bot",
+        logs_channel="Punishments and logs will be posted in this channel",
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
