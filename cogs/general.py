@@ -13,6 +13,7 @@ from utils import (
     embed_fail,
     embed_info,
     embed_success,
+    get_guild_prefs,
     is_admin,
     set_default_prefs,
     set_guild_data,
@@ -72,7 +73,15 @@ class HelpView(discord.ui.View):
             embed = self.main_embed
         else:
             for command in self.bot.get_cog(category).get_app_commands():
-                embed.add_field(name=f"/{command.name}", value=command.description)
+                name = f"/{command.name}"
+                if category == "Security":
+                    enabled = (
+                        get_guild_prefs(i.guild_id, command.name)["enabled"]
+                        if command.name != "joinwatch"
+                        else get_guild_prefs(i.guild_id, command.name)
+                    )
+                    name += " ✅" if enabled else " ❌"
+                embed.add_field(name=name, value=command.description)
         await i.response.edit_message(embed=embed)
 
 
