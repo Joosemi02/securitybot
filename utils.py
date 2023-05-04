@@ -50,7 +50,7 @@ guilds_cache = {}
 DEFAULT_GUILD_SETTINGS = {
     "lang": "en",
     "logs": 0,
-    "suspicious_joins": 0,
+    "joinwatch": 0,
     "antispam": {"enabled": False, "punishments": [], "notify": 0},
     "linkfilter": {"enabled": False, "punishments": [], "notify": 0},
     "antiraid": {"enabled": False, "punishments": [], "notify": 0},

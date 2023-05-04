@@ -239,7 +239,7 @@ class Security(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        if (channel := get_guild_prefs(member.guild.id, "suspicious_joins")) == 0:
+        if (channel := get_guild_prefs(member.guild.id, "joinwatch")) == 0:
             return
         now = discord.utils.utcnow()
         is_new = member.created_at > (now - datetime.timedelta(days=7))
@@ -451,7 +451,7 @@ class Security(commands.Cog):
     ):
         await i.response.defer()
         await set_guild_data(
-            i.guild_id, "suspicious_joins", suspicious_join_channel.id if enabled else 0
+            i.guild_id, "joinwatch", suspicious_join_channel.id if enabled else 0
         )
         msg = _T(
             i, "joinwatch", channel=suspicious_join_channel.name if enabled else "---"
