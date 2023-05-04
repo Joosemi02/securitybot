@@ -2,20 +2,16 @@ import contextlib
 import json
 from datetime import datetime
 
-from discord import BanEntry, ButtonStyle, Color, Embed, Guild, Interaction, User
+from discord import (BanEntry, ButtonStyle, Color, Embed, Guild, Interaction,
+                     User)
 from discord.errors import NotFound
 from discord.ext import commands
 from discord.ui import View, button
 from discord.utils import format_dt
 from motor import motor_tornado
 
-from constants import (
-    ADMINS,
-    DEFAULT_GUILD_SETTINGS,
-    EMBED_COLOR,
-    LANGUAGES,
-    MONGODB_CONNECTION_URI,
-)
+from constants import (ADMINS, DEFAULT_GUILD_SETTINGS, EMBED_COLOR, LANGUAGES,
+                       MONGODB_CONNECTION_URI)
 
 
 # CLASSES
@@ -76,26 +72,6 @@ def get_punishments(guild_id: int, category: str):
 
 def get_guild_prefs(guild_id: int, key):
     return guilds_cache[guild_id][key]
-
-
-async def configure_punishments(guild_id, category: str, punishment: str):
-    if punishment == "disabled":
-        await db.guilds.update_one(
-            {"_id": guild_id}, {"$set": {f"{category}.enabled": False}}
-        )
-        guilds_cache[guild_id][category]["enabled"] = False
-    else:
-        await db.guilds.update_one(
-            {"_id": guild_id},
-            {
-                "$set": {
-                    f"{category}.enabled": True,
-                    f"{category}.punishments": [punishment],
-                }
-            },
-        )
-        guilds_cache[guild_id][category]["enabled"] = True
-        guilds_cache[guild_id][category]["punishments"] = [punishment]
 
 
 # TRANSLATIONS

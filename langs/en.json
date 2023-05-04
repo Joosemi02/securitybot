@@ -64,7 +64,6 @@
         "notify": "Configured notification channel for {module} ✅: {channel}",
         "blocked": "{bot} - Your message was blocked by {module}"
     },
-    "antiraid": "Configured antiraid",
     "joinwatch": "Configured joinwatch at channel: {channel}",
     "punishments": {
         "choose": "Choose punishments...",

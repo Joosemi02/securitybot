@@ -6,7 +6,6 @@ from typing import Iterable, List, MutableMapping, Optional
 
 import discord.ui
 from discord import Interaction, Member, Message, app_commands
-from discord.app_commands import Choice
 from discord.components import SelectOption
 from discord.errors import Forbidden
 from discord.ext import commands
@@ -16,7 +15,6 @@ from discord.utils import format_dt, utcnow
 from utils import (
     _T,
     MyBot,
-    configure_punishments,
     embed_success,
     get_guild_prefs,
     get_punishments,
@@ -428,7 +426,9 @@ class Security(commands.Cog):
     async def linkfilter(self, i, enabled: bool):
         await i.response.defer()
 
-        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Malicious link filter")
+        msg = _T(
+            i, f"security.{'on' if enabled else 'off'}", module="Malicious link filter"
+        )
         view = ConfigurationView(i, self.bot, "linkfilter")
         view.message = await i.followup.send(
             embed=embed_success(msg),
@@ -459,28 +459,17 @@ class Security(commands.Cog):
         await self.bot.log(i, msg)
 
     @app_commands.command(description="Prevent Bot Raids with several methods")
-    @app_commands.describe(
-        punishment="Choose a punishment for spammers when a raid is detected."
-    )
-    @app_commands.choices(
-        punishment=[
-            Choice(name="Disable", value="disable"),
-            Choice(name="Warn", value="warn"),
-            Choice(name="5 min mute", value="min_mute"),
-            Choice(name="1 hour mute", value="hour_mute"),
-            Choice(name="1 day mute", value="day_mute"),
-            Choice(name="Kick", value="kick"),
-            Choice(name="Ban", value="ban"),
-        ]
-    )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def antiraid(self, i, punishment: Choice[str]):
+    async def antiraid(self, i, enabled: bool):
         await i.response.defer()
 
-        await configure_punishments(i.guild_id, "antiraid", punishment.value)
-        msg = _T(i, "antiraid")
-        await i.followup.send(embed=embed_success(msg))
+        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Anti Raid")
+        view = ConfigurationView(i, self.bot, "antiraid")
+        view.message = await i.followup.send(
+            embed=embed_success(msg),
+            view=view if enabled else discord.components.MISSING,
+        )
         await self.bot.log(i, msg)
 
 
