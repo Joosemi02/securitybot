@@ -249,11 +249,10 @@ class Moderation(commands.Cog):
             await i.guild.edit(invites_disabled=not enabled)
             msg = _T(i, "moderation.invites", state="on" if enabled else "off")
             await i.followup.send(embed=embed_success(msg))
+            await self.bot.log(i, msg)
         else:
             msg = _T(i, "command_fail.no_community")
             await i.followup.send(embed=embed_fail(msg))
-
-        await self.bot.log(i, msg)
 
 
 async def setup(bot):
