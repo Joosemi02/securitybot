@@ -338,7 +338,8 @@ class Security(commands.Cog):
             return
 
         with contextlib.suppress(Forbidden):
-            await member.guild.edit(invites_disabled=True)
+            if "COMMUNITY" in member.guild.features:
+                await member.guild.edit(invites_disabled=True)
             await self.execute_punishments(member, guild_id, punishments, "Anti Spam")
 
     @commands.Cog.listener()

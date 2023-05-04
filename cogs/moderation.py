@@ -245,9 +245,14 @@ class Moderation(commands.Cog):
     @app_commands.default_permissions()
     async def invites(self, i: Interaction, enabled: bool):
         await i.response.defer()
-        await i.guild.edit(invites_disabled=enabled)
-        msg = _T(i, "moderation.invites", state="on" if enabled else "off")
-        await i.followup.send(embed=embed_success(msg))
+        if "COMMUNITY" in i.guild.features:
+            await i.guild.edit(invites_disabled=not enabled)
+            msg = _T(i, "moderation.invites", state="on" if enabled else "off")
+            await i.followup.send(embed=embed_success(msg))
+        else:
+            msg = _T(i, "command_fail.no_community")
+            await i.followup.send(embed=embed_fail(msg))
+
         await self.bot.log(i, msg)
 
 
