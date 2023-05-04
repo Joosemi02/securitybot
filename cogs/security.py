@@ -273,6 +273,8 @@ class Security(commands.Cog):
             colour = 0xDD5F53
             if is_new:
                 title = "Member Joined (Very New Member)"
+            if "COMMUNITY" in member.guild.features:
+                await member.guild.edit(invites_disabled=True)
         else:
             colour = 0x53DDA4
 
@@ -361,8 +363,6 @@ class Security(commands.Cog):
             return print("nospam")
 
         with contextlib.suppress(Forbidden):
-            if "COMMUNITY" in member.guild.features:
-                await member.guild.edit(invites_disabled=True)
             await self.execute_punishments(member, guild_id, punishments, "Anti Raid")
 
     @commands.Cog.listener()
