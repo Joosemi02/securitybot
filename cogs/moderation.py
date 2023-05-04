@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from discord import Embed, Interaction, Member, Status, TextChannel, app_commands
+from discord import Embed, Interaction, Member, Status, TextChannel, User, app_commands
 from discord.app_commands import Choice
 from discord.errors import Forbidden
 from discord.ext import commands
@@ -227,6 +227,15 @@ class Moderation(commands.Cog):
         bans = [entry async for entry in i.guild.bans()]
         paginator = Paginator(interaction=i, objects=bans)
         await paginator.send_message(i)
+
+    @app_commands.command(description="Unban a user from this server")
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def unban(self, i: Interaction, user: User):
+        await i.guild.unban(user)
+        await i.response.send_message(
+            embed=embed_success(_T(i, "moderation.unban", member=user.name))
+        )
 
 
 async def setup(bot):
