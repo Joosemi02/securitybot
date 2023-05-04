@@ -231,8 +231,9 @@ class Moderation(commands.Cog):
     @app_commands.command(description="Unban a user from this server")
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def unban(self, i: Interaction, user: User):
+    async def unban(self, i: Interaction, user_id: int):
         await i.response.defer()
+        user = self.bot.get_user(user_id)
         await i.guild.unban(user)
         msg = _T(i, "moderation.unban", member=user.name)
         await i.followup.send(embed=embed_success(msg))
