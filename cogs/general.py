@@ -6,7 +6,7 @@ from discord import Interaction, SelectOption, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 
-from constants import BUG_REPORT_CHANNEL, LANGUAGES
+from constants import BUG_REPORT_CHANNEL, INVITE_LINK, LANGUAGES, SUPPORT_SERVER
 from utils import (
     _T,
     MyBot,
@@ -46,11 +46,16 @@ class BugModal(discord.ui.Modal):
 
 
 class HelpView(discord.ui.View):
-    def __init__(self, bot, main_embed):
+    def __init__(self, bot, main_embed, i):
         self.bot: MyBot = bot
         self.main_embed = main_embed
         self.message: discord.Message
         super().__init__()
+
+        self.add_item(
+            discord.ui.Button(label=_T(i, "help.support"), url=SUPPORT_SERVER)
+        )
+        self.add_item(discord.ui.Button(label=_T(i, "help.invite"), url=INVITE_LINK))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
@@ -205,7 +210,7 @@ class General(commands.Cog):
         )
         embed.add_field(name=_T(i, "help.warnings.1"), value=_T(i, "help.warnings.2"))
 
-        view = HelpView(self.bot, embed)
+        view = HelpView(self.bot, embed, i)
         view.message = await i.followup.send(embed=embed, view=view)
 
     @app_commands.command(description="Edit the bot settings for this server")

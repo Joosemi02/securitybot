@@ -4,6 +4,8 @@ APPLICATION_ID = 00000000  # Bot ID
 TOKEN = ""  # Bot token
 
 ADMINS = [12345678, 00000000]  # User ID list
+INVITE_LINK = "https://google.com"
+SUPPORT_SERVER = "https://google.com"
 
 # PREFERENCES
 EMBED_COLOR = 0x000

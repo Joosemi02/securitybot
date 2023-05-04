@@ -17,3 +17,6 @@ MAX_CLEAR_AMOUNT = 300
 BUG_REPORT_CHANNEL = int(os.getenv("BUG"))
 
 LANGUAGES = {"English": "en"}
+
+INVITE_LINK = "https://google.com"
+SUPPORT_SERVER = "https://google.com"

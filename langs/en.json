@@ -87,6 +87,8 @@
     },
     "help": {
         "desc": "Security bot to protect your server",
+        "invite": "Bot Invite link",
+        "support": "Support Server",
         "antispam": {
             "1": "Anti Spam",
             "2": "Punish spammers /antispam"
