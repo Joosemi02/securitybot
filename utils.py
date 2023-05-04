@@ -2,16 +2,14 @@ import contextlib
 import json
 from datetime import datetime
 
-from discord import (BanEntry, ButtonStyle, Color, Embed, Guild, Interaction,
-                     User)
+from discord import BanEntry, ButtonStyle, Color, Embed, Guild, Interaction, User
 from discord.errors import NotFound
 from discord.ext import commands
 from discord.ui import View, button
 from discord.utils import format_dt
 from motor import motor_tornado
 
-from constants import (ADMINS, DEFAULT_GUILD_SETTINGS, EMBED_COLOR, LANGUAGES,
-                       MONGODB_CONNECTION_URI)
+from constants import ADMINS, EMBED_COLOR, LANGUAGES, MONGODB_CONNECTION_URI
 
 
 # CLASSES
@@ -48,6 +46,15 @@ class MyBot(commands.Bot):
 # DATABASE
 db = motor_tornado.MotorClient(MONGODB_CONNECTION_URI)["security"]
 guilds_cache = {}
+
+DEFAULT_GUILD_SETTINGS = {
+    "lang": "en",
+    "logs": 0,
+    "suspicious_joins": 0,
+    "antispam": {"enabled": False, "punishments": [], "notify": 0},
+    "linkfilter": {"enabled": False, "punishments": [], "notify": 0},
+    "antiraid": {"enabled": False, "punishments": [], "notify": 0},
+}
 
 
 async def set_guild_data(guild_id, field, value):
