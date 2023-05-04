@@ -51,9 +51,8 @@ DEFAULT_GUILD_SETTINGS = {
     "lang": "en",
     "logs": 0,
     "joinwatch": 0,
-    "antispam": {"enabled": False, "punishments": [], "notify": 0},
-    "linkfilter": {"enabled": False, "punishments": [], "notify": 0},
-    "antiraid": {"enabled": False, "punishments": [], "notify": 0},
+    "linkfilter": {"enabled": False, "punishments": []},
+    "antiraid": {"enabled": False, "punishments": []},
 }
 
 

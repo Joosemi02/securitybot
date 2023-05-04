@@ -196,7 +196,6 @@ class General(commands.Cog):
     async def help(self, i: Interaction):
         await i.response.defer()
         embed = embed_info(_T(i, "help.desc"))
-        embed.add_field(name=_T(i, "help.antispam.1"), value=_T(i, "help.antispam.2"))
         embed.add_field(name=_T(i, "help.antiraid.1"), value=_T(i, "help.antiraid.2"))
         embed.add_field(
             name=_T(i, "help.linkfilter.1"), value=_T(i, "help.linkfilter.2")

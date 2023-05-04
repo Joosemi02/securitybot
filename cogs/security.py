@@ -149,7 +149,6 @@ class NotifySelect(discord.ui.ChannelSelect):
         else:
             channel_id = 0
             channel_name = "---"
-        await set_guild_data(i.guild_id, f"{self.view.category}.notify", channel_id)
         msg = _T(i, "security.notify", module=self.view.category, channel=channel_name)
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
@@ -171,12 +170,36 @@ class ActionSelect(discord.ui.Select):
         self.bot = bot
 
     async def callback(self, i: Interaction):
-        await set_guild_data(
-            i.guild_id, f"{self.view.category}.punishments", self.values
-        )
-        msg = _T(i, "security.config", module=self.view.category)
+        category = self.view.category
+        if category == "linkfilter":
+            await self.create_automod_linkfilter(i)
+        await set_guild_data(i.guild_id, f"{category}.punishments", self.values)
+        msg = _T(i, "security.config", module=category)
         await i.followup.send(embed=embed_success(msg))
         await self.bot.log(i, msg)
+
+    async def create_automod_linkfilter(self, i):
+        rules = await i.guild.fetch_automod_rules()
+        for rule in rules:
+            if rule.trigger.type.value == 3:
+                await rule.delete()
+
+        await i.guild.create_automod_rule(
+            name=f"{self.bot.user.name} - Anti Spam",
+            event_type=discord.AutoModRuleEventType.message_send,
+            trigger=discord.AutoModTrigger(type=discord.AutoModRuleTriggerType.spam),
+            actions=[
+                discord.AutoModRuleAction(
+                    custom_message=_T(
+                        i,
+                        "security.blocked",
+                        module="antispam",
+                        bot=self.bot.user.name,
+                    )
+                ),
+            ],
+            enabled=True,
+        )
 
 
 class ConfigurationView(discord.ui.View):
@@ -273,10 +296,10 @@ class Security(commands.Cog):
     ):
         punishment_msg = None
         if "warn" in punishments:
-            exec_warn(guild_id, member.id, reason)
+            await exec_warn(guild_id, member.id, reason)
             punishment_msg = _T(
                 guild_id,
-                "warnings.punished",
+                "warnings.punish",
                 member=member.display_name,
                 reason=reason,
             )
@@ -335,28 +358,28 @@ class Security(commands.Cog):
 
         checker = self._spam_check[guild_id]
         if not checker.is_spamming(message):
-            return
+            return print("nospam")
 
         with contextlib.suppress(Forbidden):
             if "COMMUNITY" in member.guild.features:
                 await member.guild.edit(invites_disabled=True)
-            await self.execute_punishments(member, guild_id, punishments, "Anti Spam")
+            await self.execute_punishments(member, guild_id, punishments, "Anti Raid")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         author = message.author
         if author.id in (self.bot.user.id, self.bot.owner_id):
-            return
+            return print(0)
         if message.guild is None or not isinstance(author, discord.Member):
-            return
+            return print(1)
         if author.bot:
-            return
+            return print(2)
         if author.guild_permissions.manage_messages:
-            return
+            return print(3)
         guild_id = message.guild.id
 
         await self.check_raid(guild_id, author, message)
-        if any(link in message.content for link in self.links):
+        if any(word in self.links for word in message.content.split(" ")):
             with contextlib.suppress(Forbidden):
                 await message.delete()
                 await self.execute_punishments(
@@ -366,15 +389,19 @@ class Security(commands.Cog):
     @commands.Cog.listener()
     async def on_automod_action(self, execution: discord.AutoModAction):
         guild_id = execution.guild_id
-        if execution.rule_trigger_type not in [3, 5]:
+        if execution.rule_trigger_type == 3:
+            category = "linkfilter"
+        elif execution.rule_trigger_type == 5:
+            category = "antiraid"
+        else:
             return
-        if (punishments := get_punishments(guild_id, "antispam")) == []:
+        if (punishments := get_punishments(guild_id, category)) == []:
             return
-        member = await self.execute_punishments(
-            member, guild_id, punishments, "Anti Spam"
+        await self.execute_punishments(
+            execution.member, guild_id, punishments, "Anti Spam"
         )
 
-    async def enable_antispam(self, i: Interaction, enabled):
+    async def enable_anti_mentionspam(self, i: Interaction, enabled):
         actions = [
             discord.AutoModRuleAction(
                 custom_message=_T(
@@ -384,11 +411,11 @@ class Security(commands.Cog):
         ]
         rules = await i.guild.fetch_automod_rules()
         for rule in rules:
-            if rule.trigger.type.value in [3, 5]:
+            if rule.trigger.type.value == 5:
                 await rule.delete()
 
         mention_spam_trigger = discord.AutoModTrigger(
-            type=discord.AutoModRuleTriggerType.mention_spam
+            type=discord.AutoModRuleTriggerType.mention_spam, mention_limit=10
         )
         await i.guild.create_automod_rule(
             name=f"{self.bot.user.name} - Anti Mention Spam",
@@ -397,24 +424,18 @@ class Security(commands.Cog):
             actions=actions,
             enabled=enabled,
         )
-        spam_trigger = discord.AutoModTrigger(type=discord.AutoModRuleTriggerType.spam)
-        await i.guild.create_automod_rule(
-            name=f"{self.bot.user.name} - Anti Spam",
-            event_type=discord.AutoModRuleEventType.message_send,
-            trigger=spam_trigger,
-            actions=actions,
-            enabled=enabled,
-        )
 
-    @app_commands.command(description="Manage the antispam filter.")
+    @app_commands.command(
+        description="Prevent raids and spam in your server with several methods."
+    )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def antispam(self, i: Interaction, enabled: bool):
+    async def antiraid(self, i: Interaction, enabled: bool):
         await i.response.defer()
-        await self.enable_antispam(i, enabled)
+        await self.enable_anti_mentionspam(i, enabled)
 
-        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Antispam")
-        view = ConfigurationView(i, self.bot, "antispam")
+        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Antiraid")
+        view = ConfigurationView(i, self.bot, "antiraid")
         view.message = await i.followup.send(
             embed=embed_success(msg),
             view=view if enabled else discord.components.MISSING,
@@ -424,8 +445,14 @@ class Security(commands.Cog):
     @app_commands.command(description="Filter phishing and spam links in your server")
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def linkfilter(self, i, enabled: bool):
+    async def linkfilter(self, i: Interaction, enabled: bool):
         await i.response.defer()
+
+        if not enabled:
+            rules = await i.guild.fetch_automod_rules()
+            for rule in rules:
+                if rule.trigger.type.value == 3:
+                    await rule.delete()
 
         msg = _T(
             i, f"security.{'on' if enabled else 'off'}", module="Malicious link filter"
@@ -457,20 +484,6 @@ class Security(commands.Cog):
             i, "joinwatch", channel=suspicious_join_channel.name if enabled else "---"
         )
         await i.followup.send(embed=embed_success(msg))
-        await self.bot.log(i, msg)
-
-    @app_commands.command(description="Prevent Bot Raids with several methods")
-    @app_commands.guild_only()
-    @app_commands.default_permissions()
-    async def antiraid(self, i, enabled: bool):
-        await i.response.defer()
-
-        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Anti Raid")
-        view = ConfigurationView(i, self.bot, "antiraid")
-        view.message = await i.followup.send(
-            embed=embed_success(msg),
-            view=view if enabled else discord.components.MISSING,
-        )
         await self.bot.log(i, msg)
 
 
