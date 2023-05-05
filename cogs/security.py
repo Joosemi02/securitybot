@@ -360,7 +360,7 @@ class Security(commands.Cog):
 
         checker = self._spam_check[guild_id]
         if not checker.is_spamming(message):
-            return print("nospam")
+            return
 
         with contextlib.suppress(Forbidden):
             await self.execute_punishments(member, guild_id, punishments, "Anti Raid")
@@ -369,13 +369,13 @@ class Security(commands.Cog):
     async def on_message(self, message: discord.Message):
         author = message.author
         if author.id in (self.bot.user.id, self.bot.owner_id):
-            return print(0)
+            return
         if message.guild is None or not isinstance(author, discord.Member):
-            return print(1)
+            return
         if author.bot:
-            return print(2)
+            return
         if author.guild_permissions.manage_messages:
-            return print(3)
+            return
         guild_id = message.guild.id
 
         await self.check_raid(guild_id, author, message)
