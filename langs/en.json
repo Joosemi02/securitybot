@@ -89,9 +89,9 @@
         "desc": "Security bot to protect your server",
         "invite": "Bot Invite link",
         "support": "Support Server",
-        "antiraid": {
-            "1": "Anti Bot Raid",
-            "2": "Prevent raids in your server /antiraid"
+        "antispam": {
+            "1": "Anti Spam",
+            "2": "Prevent spam and bot raids in your server /antispam"
         },
         "linkfilter": {
             "1": "Link Filter",

@@ -52,7 +52,7 @@ DEFAULT_GUILD_SETTINGS = {
     "logs": 0,
     "joinwatch": 0,
     "linkfilter": {"enabled": False, "punishments": []},
-    "antiraid": {"enabled": False, "punishments": []},
+    "antispam": {"enabled": False, "punishments": []},
 }
 
 

@@ -354,7 +354,7 @@ class Security(commands.Cog):
         member: discord.Member,
         message: discord.Message,
     ) -> None:
-        enabled, punishments = get_guild_prefs(guild_id, "antiraid").values()
+        enabled, punishments = get_guild_prefs(guild_id, "antispam").values()
         if not enabled:
             return
 
@@ -392,7 +392,7 @@ class Security(commands.Cog):
         if execution.rule_trigger_type == 3:
             category = "linkfilter"
         elif execution.rule_trigger_type == 5:
-            category = "antiraid"
+            category = "antispam"
         else:
             return
         if (punishments := get_punishments(guild_id, category)) == []:
@@ -434,8 +434,8 @@ class Security(commands.Cog):
         await i.response.defer()
         await self.enable_anti_mentionspam(i, enabled)
 
-        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Antiraid")
-        view = ConfigurationView(i, self.bot, "antiraid")
+        msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Anti Spam")
+        view = ConfigurationView(i, self.bot, "antispam")
         view.message = await i.followup.send(
             embed=embed_success(msg),
             view=view if enabled else discord.components.MISSING,
