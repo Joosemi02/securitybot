@@ -24,7 +24,7 @@ from utils import (
 from .warnings import exec_warn
 
 
-# AntiRaid
+# AntiSpam
 class ExpiringCache(dict):
     def __init__(self, seconds: float):
         self.__ttl: float = seconds
