@@ -426,11 +426,11 @@ class Security(commands.Cog):
         )
 
     @app_commands.command(
-        description="Prevent raids and spam in your server with several methods."
+        description="Prevent spam and raids in your server with several spam detection methods."
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def antiraid(self, i: Interaction, enabled: bool):
+    async def antispam(self, i: Interaction, enabled: bool):
         await i.response.defer()
         await self.enable_anti_mentionspam(i, enabled)
 
