@@ -226,15 +226,17 @@ class General(commands.Cog):
         await set_guild_data(i.guild_id, "lang", language.value)
         await i.followup.send(embed=embed_success(_T(i, "config")))
 
-    @app_commands.command(description="Manage logs channel")
+    @app_commands.command(
+        description="Manage logs channel. If no channel is selected logs will be disabled."
+    )
     @app_commands.describe(
         channel="Punishments and logs will be posted in this channel"
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def logs(self, i: Interaction, enabled: bool, channel: discord.TextChannel):
+    async def logs(self, i: Interaction, channel: discord.TextChannel = None):
         await i.response.defer()
-        await set_guild_data(i.guild_id, "logs", channel.id if enabled else 0)
+        await set_guild_data(i.guild_id, "logs", channel.id if channel else 0)
         await i.followup.send(embed=embed_success(_T(i, "config")))
 
 
