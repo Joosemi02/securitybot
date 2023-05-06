@@ -212,29 +212,29 @@ class General(commands.Cog):
         view = HelpView(self.bot, embed, i)
         view.message = await i.followup.send(embed=embed, view=view)
 
-    @app_commands.command(description="Edit the bot settings for this server")
+    @app_commands.command(description="Edit the bot language settings for this server")
     @app_commands.choices(
         language=[Choice(name=k, value=v) for k, v in LANGUAGES.items()]
     )
     @app_commands.describe(
         language="The general language for the bot",
-        logs_channel="Punishments and logs will be posted in this channel",
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def config(
-        self,
-        i: Interaction,
-        language: Choice[str] = None,
-        logs_channel: discord.TextChannel = None,
-    ):
+    async def language(self, i: Interaction, language: Choice[str]):
         await i.response.defer()
-        if not language and not logs_channel:
-            return await i.followup.send(_T(i, "command_fail.no_config"))
-        if language:
-            await set_guild_data(i.guild_id, "lang", language.value)
-        if logs_channel:
-            await set_guild_data(i.guild_id, "logs", logs_channel.id)
+        await set_guild_data(i.guild_id, "lang", language.value)
+        await i.followup.send(embed=embed_success(_T(i, "config")))
+
+    @app_commands.command(description="Manage logs channel")
+    @app_commands.describe(
+        channel="Punishments and logs will be posted in this channel"
+    )
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def logs(self, i: Interaction, enabled: bool, channel: discord.TextChannel):
+        await i.response.defer()
+        await set_guild_data(i.guild_id, "logs", channel.id if enabled else 0)
         await i.followup.send(embed=embed_success(_T(i, "config")))
 
 

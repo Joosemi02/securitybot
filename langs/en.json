@@ -3,7 +3,6 @@
     "command_fail": {
         "no_admin": "You don't have permissions to use this command, only admins can use it.",
         "no_mod": "Only server admins and moderation roles can use this command.",
-        "no_config": "Choose settings to edit.",
         "no_community": "This server must be a Community to use this feature",
         "not_own_settings": "Only the user that used this command can edit the settings.",
         "not_own_paginator": "Only the user that used this command can turn pages.",
