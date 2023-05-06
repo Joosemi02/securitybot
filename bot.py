@@ -4,7 +4,7 @@ import sys
 import time
 import traceback
 
-import discord
+from discord import Intents
 from discord.ext import commands
 
 from constants import APPLICATION_ID, TOKEN
@@ -12,7 +12,7 @@ from utils import _T, MyBot, embed_fail
 
 bot: commands.Bot | MyBot = MyBot(
     command_prefix=commands.when_mentioned,
-    intents=discord.Intents.all(),
+    intents=Intents.all(),
     application_id=APPLICATION_ID,
 )
 bot.start_time = time.time()
@@ -26,7 +26,7 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.CheckFailure):
-        embed = embed_fail(_T(ctx, "command_fail.no_admin"))
+        embed = embed_fail(ctx, _T(ctx, "command_fail.no_admin"))
         await ctx.reply(
             embed=embed,
             delete_after=5,

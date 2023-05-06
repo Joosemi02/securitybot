@@ -4,12 +4,25 @@ import time
 from collections import defaultdict
 from typing import Iterable, List, MutableMapping, Optional
 
-import discord.ui
-from discord import Interaction, Member, Message, app_commands
-from discord.components import SelectOption
+from discord import (
+    AutoModAction,
+    AutoModRuleAction,
+    AutoModRuleEventType,
+    AutoModRuleTriggerType,
+    AutoModTrigger,
+    ChannelType,
+    Embed,
+    Interaction,
+    Member,
+    Message,
+    TextChannel,
+    app_commands,
+)
+from discord.components import MISSING, SelectOption
 from discord.errors import Forbidden
 from discord.ext import commands
 from discord.interactions import Interaction
+from discord.ui import ChannelSelect, Select, View
 from discord.utils import format_dt, utcnow
 
 from utils import (
@@ -126,13 +139,13 @@ class RaidChecker:
 
 
 # Views
-class NotifySelect(discord.ui.ChannelSelect):
+class NotifySelect(ChannelSelect):
     def __init__(self, placeholder: str, bot: MyBot):
         super().__init__(
             placeholder=placeholder,
             min_values=0,
             max_values=1,
-            channel_types=[discord.ChannelType.text],
+            channel_types=[ChannelType.text],
         )
         self.bot = bot
 
@@ -144,17 +157,17 @@ class NotifySelect(discord.ui.ChannelSelect):
             for rule in rules:
                 if rule.trigger.type.value in [3, 5]:
                     actions = rule.actions
-                    actions.append(discord.AutoModRuleAction(channel_id=channel_id))
+                    actions.append(AutoModRuleAction(channel_id=channel_id))
                     await rule.edit(actions=actions)
         else:
             channel_id = 0
             channel_name = "---"
         msg = _T(i, "security.notify", module=self.view.category, channel=channel_name)
-        await i.followup.send(embed=embed_success(msg))
+        await i.followup.send(embed=embed_success(i, msg))
         await self.bot.log(i, msg)
 
 
-class ActionSelect(discord.ui.Select):
+class ActionSelect(Select):
     def __init__(
         self,
         *,
@@ -175,7 +188,7 @@ class ActionSelect(discord.ui.Select):
             await self.create_automod_linkfilter(i)
         await set_guild_data(i.guild_id, f"{category}.punishments", self.values)
         msg = _T(i, "security.config", module=category)
-        await i.followup.send(embed=embed_success(msg))
+        await i.followup.send(embed=embed_success(i, msg))
         await self.bot.log(i, msg)
 
     async def create_automod_linkfilter(self, i):
@@ -186,10 +199,10 @@ class ActionSelect(discord.ui.Select):
 
         await i.guild.create_automod_rule(
             name=f"{self.bot.user.name} - Anti Spam",
-            event_type=discord.AutoModRuleEventType.message_send,
-            trigger=discord.AutoModTrigger(type=discord.AutoModRuleTriggerType.spam),
+            event_type=AutoModRuleEventType.message_send,
+            trigger=AutoModTrigger(type=AutoModRuleTriggerType.spam),
             actions=[
-                discord.AutoModRuleAction(
+                AutoModRuleAction(
                     custom_message=_T(
                         i,
                         "security.blocked",
@@ -202,7 +215,7 @@ class ActionSelect(discord.ui.Select):
         )
 
 
-class ConfigurationView(discord.ui.View):
+class ConfigurationView(View):
     def __init__(self, i: Interaction, bot, category: str):
         super().__init__()
         self.i = i
@@ -261,10 +274,10 @@ class Security(commands.Cog):
         print(f"{self.bot.user.name}: Security extension was loaded successfully.")
 
     @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    async def on_member_join(self, member: Member):
         if (channel := get_guild_prefs(member.guild.id, "joinwatch")) == 0:
             return
-        now = discord.utils.utcnow()
+        now = utcnow()
         is_new = member.created_at > (now - datetime.timedelta(days=7))
         checker = self._spam_check[member.guild.id]
 
@@ -282,9 +295,12 @@ class Security(commands.Cog):
                 colour = 0xDDA453
                 title = "Member Joined (Very New Member)"
 
-        e = discord.Embed(title=title, colour=colour)
-        e.timestamp = now
+        e = Embed(title=title, colour=colour, timestamp=now)
         e.set_author(name=str(member), icon_url=member.display_avatar.url)
+        e.set_footer(
+            icon_url=self.bot.user.display_avatar.url,
+            text=self.bot.user.name,
+        )
         e.add_field(name="ID", value=member.id)
         assert member.joined_at is not None
         e.add_field(name="Joined", value=format_dt(member.joined_at, "F"))
@@ -294,7 +310,7 @@ class Security(commands.Cog):
         await self.bot.get_channel(channel).send(embed=e)
 
     async def execute_punishments(
-        self, member: discord.Member, guild_id, punishments, reason: str
+        self, member: Member, guild_id, punishments, reason: str
     ):
         punishment_msg = None
         if "warn" in punishments:
@@ -351,8 +367,8 @@ class Security(commands.Cog):
     async def check_raid(
         self,
         guild_id: int,
-        member: discord.Member,
-        message: discord.Message,
+        member: Member,
+        message: Message,
     ) -> None:
         enabled, punishments = get_guild_prefs(guild_id, "antispam").values()
         if not enabled:
@@ -366,11 +382,11 @@ class Security(commands.Cog):
             await self.execute_punishments(member, guild_id, punishments, "Anti Raid")
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: Message):
         author = message.author
         if author.id in (self.bot.user.id, self.bot.owner_id):
             return
-        if message.guild is None or not isinstance(author, discord.Member):
+        if message.guild is None or not isinstance(author, Member):
             return
         if author.bot:
             return
@@ -389,7 +405,7 @@ class Security(commands.Cog):
                 )
 
     @commands.Cog.listener()
-    async def on_automod_action(self, execution: discord.AutoModAction):
+    async def on_automod_action(self, execution: AutoModAction):
         guild_id = execution.guild_id
         if execution.rule_trigger_type == 3:
             category = "linkfilter"
@@ -405,7 +421,7 @@ class Security(commands.Cog):
 
     async def enable_anti_mentionspam(self, i: Interaction, enabled):
         actions = [
-            discord.AutoModRuleAction(
+            AutoModRuleAction(
                 custom_message=_T(
                     i, "security.blocked", module="antispam", bot=self.bot.user.name
                 )
@@ -416,12 +432,12 @@ class Security(commands.Cog):
             if rule.trigger.type.value == 5:
                 await rule.delete()
 
-        mention_spam_trigger = discord.AutoModTrigger(
-            type=discord.AutoModRuleTriggerType.mention_spam, mention_limit=10
+        mention_spam_trigger = AutoModTrigger(
+            type=AutoModRuleTriggerType.mention_spam, mention_limit=10
         )
         await i.guild.create_automod_rule(
             name=f"{self.bot.user.name} - Anti Mention Spam",
-            event_type=discord.AutoModRuleEventType.message_send,
+            event_type=AutoModRuleEventType.message_send,
             trigger=mention_spam_trigger,
             actions=actions,
             enabled=enabled,
@@ -440,8 +456,8 @@ class Security(commands.Cog):
         msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Anti Spam")
         view = ConfigurationView(i, self.bot, "antispam")
         view.message = await i.followup.send(
-            embed=embed_success(msg),
-            view=view if enabled else discord.components.MISSING,
+            embed=embed_success(i, msg),
+            view=view if enabled else MISSING,
         )
         await self.bot.log(i, msg)
 
@@ -463,8 +479,8 @@ class Security(commands.Cog):
         )
         view = ConfigurationView(i, self.bot, "linkfilter")
         view.message = await i.followup.send(
-            embed=embed_success(msg),
-            view=view if enabled else discord.components.MISSING,
+            embed=embed_success(i, msg),
+            view=view if enabled else MISSING,
         )
         await self.bot.log(i, msg)
 
@@ -477,7 +493,7 @@ class Security(commands.Cog):
     async def joinwatch(
         self,
         i: Interaction,
-        suspicious_join_channel: discord.TextChannel,
+        suspicious_join_channel: TextChannel,
         enabled: bool,
     ):
         await i.response.defer()
@@ -487,7 +503,7 @@ class Security(commands.Cog):
         msg = _T(
             i, "joinwatch", channel=suspicious_join_channel.name if enabled else "---"
         )
-        await i.followup.send(embed=embed_success(msg))
+        await i.followup.send(embed=embed_success(i, msg))
         await self.bot.log(i, msg)
 
 

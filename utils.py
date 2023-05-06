@@ -6,7 +6,7 @@ from discord import BanEntry, ButtonStyle, Color, Embed, Guild, Interaction, Use
 from discord.errors import NotFound
 from discord.ext import commands
 from discord.ui import View, button
-from discord.utils import format_dt
+from discord.utils import format_dt, utcnow
 from motor import motor_tornado
 
 from constants import ADMINS, EMBED_COLOR, LANGUAGES, MONGODB_CONNECTION_URI
@@ -33,12 +33,11 @@ class MyBot(commands.Bot):
             guild_id, user = object_
 
         if channel := self.get_channel(guilds_cache[guild_id]["logs"]):
-            log_embed = embed_info(msg)
+            log_embed = embed_info((self, user), msg)
             log_embed.add_field(
                 name=_T(guild_id, "punishments_log.author"),
                 value=f"{user.name}#{user.discriminator}\nID: ``{user.id}``",
             )
-            log_embed.add_field(name="Time", value=format_dt(datetime.now()))
             log_embed.set_author(name=user.name, icon_url=user.display_avatar.url)
             await channel.send(embed=log_embed)
 
@@ -121,16 +120,53 @@ def get_guild_id(object_):
 
 
 # FORMAT
-def embed_info(message: str) -> Embed:
-    return Embed(description=message, color=EMBED_COLOR)
+def embed_info(
+    object_: Interaction | tuple[MyBot, User] | commands.Context, message: str
+) -> Embed:
+    if isinstance(object_, Interaction):
+        bot_name = object_.client.user.name
+        author = object_.user.name
+        icon = object_.client.user.display_avatar.url
+    elif isinstance(object_, commands.Context):
+        icon = object_.bot.user.display_avatar.url
+        bot_name = object_.bot.user.name
+        author = object_.author.name
+    else:
+        bot, user = object_
+        author = user.name
+        bot_name = bot.user.name
+        icon = bot.user.display_avatar.url
+    embed = Embed(description=message, color=EMBED_COLOR, timestamp=utcnow())
+    embed.set_footer(icon_url=icon, text=f"{bot_name} | {author}")
+    return embed
 
 
-def embed_fail(message: str) -> Embed:
-    return Embed(description=message, color=Color.red())
+def embed_fail(object_: commands.Context | Interaction, message: str) -> Embed:
+    if isinstance(object_, Interaction):
+        icon = object_.client.user.display_avatar.url
+        bot_name = object_.client.user.name
+        author = object_.user.name
+    else:
+        icon = object_.bot.user.display_avatar.url
+        bot_name = object_.bot.user.name
+        author = object_.author.name
+    embed = Embed(description=message, color=Color.red(), timestamp=utcnow())
+    embed.set_footer(icon_url=icon, text=f"{bot_name} | {author}")
+    return embed
 
 
-def embed_success(message: str) -> Embed:
-    return Embed(description=message, color=Color.green())
+def embed_success(object_: Interaction | commands.Context, message: str) -> Embed:
+    if isinstance(object_, Interaction):
+        icon = object_.client.user.display_avatar.url
+        bot_name = object_.client.user.name
+        author = object_.user.name
+    else:
+        icon = object_.bot.user.display_avatar.url
+        bot_name = object_.bot.user.name
+        author = object_.author.name
+    embed = Embed(description=message, color=Color.green(), timestamp=utcnow())
+    embed.set_footer(icon_url=icon, text=f"{bot_name} | {author}")
+    return embed
 
 
 # CHECKS
@@ -180,6 +216,7 @@ class Paginator:
         embed = Embed(
             description="" if self.objects else _T(self.i, "warnings.display.no_warns"),
             color=EMBED_COLOR,
+            timestamp=utcnow(),
         )
         for num, dict_ in self.objects.items():
             reason = f"{_T(self.i, 'warnings.display.reason')}: {dict_[0]}"
@@ -203,6 +240,7 @@ class Paginator:
         embed = Embed(
             description="" if self.objects else _T(self.i, "moderation.bans.no_bans"),
             color=EMBED_COLOR,
+            timestamp=utcnow(),
         )
         for ban in self.objects:
             embed.add_field(

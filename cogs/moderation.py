@@ -1,12 +1,12 @@
 from datetime import timedelta
 
-from discord import Embed, Interaction, Member, Status, TextChannel, User, app_commands
+from discord import Embed, Interaction, Member, Status, TextChannel, app_commands
 from discord.app_commands import Choice
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
-from utils import _T, MyBot, Paginator, embed_fail, embed_success
+from utils import _T, MyBot, Paginator, embed_fail, embed_info, embed_success
 
 
 class Moderation(commands.Cog):
@@ -26,7 +26,7 @@ class Moderation(commands.Cog):
             await member.kick(reason=reason)
         except Forbidden:
             return await i.followup.send(
-                embed=embed_fail(_T(i, "command_fail.forbidden"))
+                embed=embed_fail(i, _T(i, "command_fail.forbidden"))
             )
 
         punishment_msg = _T(
@@ -36,7 +36,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" if reason else "✅",
         )
 
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Ban this user from the server.")
@@ -48,7 +48,7 @@ class Moderation(commands.Cog):
             await member.ban(reason=reason)
         except Forbidden:
             return await i.followup.send(
-                embed=embed_fail(_T(i, "command_fail.forbidden"))
+                embed=embed_fail(i, _T(i, "command_fail.forbidden"))
             )
 
         punishment_msg = _T(
@@ -58,7 +58,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" if reason else "✅",
         )
 
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Mute this user temporarily.")
@@ -87,7 +87,7 @@ class Moderation(commands.Cog):
             await member.timeout(timedelta(seconds=time.value), reason=reason)
         except Forbidden:
             return await i.followup.send(
-                embed=embed_fail(_T(i, "command_fail.forbidden"))
+                embed=embed_fail(i, _T(i, "command_fail.forbidden"))
             )
 
         punishment_msg = _T(
@@ -98,7 +98,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" if reason else "✅",
         )
 
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Bulk delete messages in this channel.")
@@ -112,7 +112,7 @@ class Moderation(commands.Cog):
             await i.channel.purge(limit=amount, bulk=True)
         except Forbidden:
             return await i.followup.send(
-                embed=embed_fail(_T(i, "command_fail.forbidden"))
+                embed=embed_fail(i, _T(i, "command_fail.forbidden"))
             )
 
         punishment_msg = _T(
@@ -122,7 +122,7 @@ class Moderation(commands.Cog):
             channel=i.channel.mention,
         )
 
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Get info of this user.")
@@ -130,7 +130,7 @@ class Moderation(commands.Cog):
     @app_commands.default_permissions()
     async def userinfo(self, i: Interaction, member: Member):
         await i.response.defer()
-        embed = Embed(color=EMBED_COLOR)
+        embed = embed_info(i, "")
         embed.set_thumbnail(url=member.display_avatar.url)
         embed.set_author(name=member)
 
@@ -210,14 +210,14 @@ class Moderation(commands.Cog):
             await channel.edit(slowmode_delay=time)
         except Forbidden:
             return await i.followup.send(
-                embed=embed_fail(_T(i, "command_fail.forbidden"))
+                embed=embed_fail(i, _T(i, "command_fail.forbidden"))
             )
 
         punishment_msg = _T(
             i, "moderation.slowmode", channel=i.channel.mention, time=time
         )
 
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Get a list of banned members")
@@ -244,7 +244,7 @@ class Moderation(commands.Cog):
 
         await i.guild.unban(user)
         msg = _T(i, "moderation.unban", member=user.name)
-        await i.followup.send(embed=embed_success(msg))
+        await i.followup.send(embed=embed_success(i, msg))
         await self.bot.log(i, msg)
 
     @app_commands.command(
@@ -257,11 +257,11 @@ class Moderation(commands.Cog):
         if "COMMUNITY" in i.guild.features:
             await i.guild.edit(invites_disabled=not enabled)
             msg = _T(i, "moderation.invites", state="on" if enabled else "off")
-            await i.followup.send(embed=embed_success(msg))
+            await i.followup.send(embed=embed_success(i, msg))
             await self.bot.log(i, msg)
         else:
             msg = _T(i, "command_fail.no_community")
-            await i.followup.send(embed=embed_fail(msg))
+            await i.followup.send(embed=embed_fail(i, msg))
 
 
 async def setup(bot):

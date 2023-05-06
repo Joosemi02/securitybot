@@ -1,10 +1,20 @@
 import subprocess
 import time
 
-import discord.ui
-from discord import Interaction, SelectOption, app_commands
+from discord import (
+    Color,
+    Embed,
+    Guild,
+    Interaction,
+    Message,
+    SelectOption,
+    TextChannel,
+    TextStyle,
+    app_commands,
+)
 from discord.app_commands import Choice
 from discord.ext import commands
+from discord.ui import Button, Modal, Select, TextInput, View, select
 
 from constants import BUG_REPORT_CHANNEL, INVITE_LINK, LANGUAGES, SUPPORT_SERVER
 from utils import (
@@ -20,12 +30,12 @@ from utils import (
 )
 
 
-class BugModal(discord.ui.Modal):
+class BugModal(Modal):
     def __init__(self):
         super().__init__(title="Bug report", timeout=180)
 
-    info = discord.ui.TextInput(
-        style=discord.TextStyle.long,
+    info = TextInput(
+        style=TextStyle.long,
         label="Explain the bug here",
         placeholder="Please be detailed about the steps to reproduce this.",
         min_length=20,
@@ -34,7 +44,7 @@ class BugModal(discord.ui.Modal):
     async def on_submit(self, i: Interaction):
         await i.response.defer()
         channel = i.client.get_channel(BUG_REPORT_CHANNEL)
-        e = embed_info(self.info.value)
+        e = embed_info(i, self.info.value)
         e.set_author(name=i.user.name, icon_url=i.user.display_avatar.url)
         if channel:
             await channel.send(embed=e)
@@ -45,22 +55,20 @@ class BugModal(discord.ui.Modal):
         )
 
 
-class HelpView(discord.ui.View):
+class HelpView(View):
     def __init__(self, bot, main_embed, i):
         self.bot: MyBot = bot
         self.main_embed = main_embed
-        self.message: discord.Message
+        self.message: Message
         super().__init__()
 
-        self.add_item(
-            discord.ui.Button(label=_T(i, "help.support"), url=SUPPORT_SERVER)
-        )
-        self.add_item(discord.ui.Button(label=_T(i, "help.invite"), url=INVITE_LINK))
+        self.add_item(Button(label=_T(i, "help.support"), url=SUPPORT_SERVER))
+        self.add_item(Button(label=_T(i, "help.invite"), url=INVITE_LINK))
 
     async def on_timeout(self):
         await self.message.edit(view=None)
 
-    @discord.ui.select(
+    @select(
         options=[
             SelectOption(label="Moderation commands", value="Moderation", emoji="🔨"),
             SelectOption(label="Security commands", value="Security", emoji="🛡️"),
@@ -71,9 +79,9 @@ class HelpView(discord.ui.View):
         placeholder="Help by category",
         max_values=1,
     )
-    async def helpmenu(self, i: Interaction, select: discord.ui.Select):
+    async def helpmenu(self, i: Interaction, select: Select):
         category = select.values[0]
-        embed = embed_info(f"{category} commands")
+        embed = embed_info(i, f"{category} commands")
         if category == "Main":
             embed = self.main_embed
         else:
@@ -99,13 +107,13 @@ class General(commands.Cog):
         print(f"{self.bot.user.name}: Global extension loaded successfully.")
 
     @commands.Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild):
+    async def on_guild_join(self, guild: Guild):
         await set_default_prefs(guild.id)
 
     @commands.command()
     @commands.check(is_admin)
     async def adminhelp(self, ctx: commands.Context):
-        embed = embed_info("Admin commands")
+        embed = embed_info(ctx, "Admin commands")
         embed.add_field(name="sync", value="Sync app commands")
         embed.add_field(
             name="leave [server_id]", value="The bot leaves the given server"
@@ -118,20 +126,20 @@ class General(commands.Cog):
     async def sync(self, ctx: commands.Context):
         await self.bot.tree.sync()
         await ctx.message.delete()
-        await ctx.send(embed=embed_success("Commands synced!"), delete_after=5)
+        await ctx.send(embed=embed_success(ctx, "Commands synced!"), delete_after=5)
 
     @commands.command()
     @commands.check(is_admin)
     async def leave(self, ctx: commands.Context, guild_id: int):
         if (guild := self.bot.get_guild(guild_id)) is None:
-            return await ctx.send(embed=embed_fail("Server not found for this ID"))
+            return await ctx.send(embed=embed_fail(ctx, "Server not found for this ID"))
         await guild.leave()
-        await ctx.send(embed=embed_success("Left server successfully"))
+        await ctx.send(embed=embed_success(ctx, "Left server successfully"))
 
     @commands.command()
     @commands.check(is_admin)
     async def info(self, ctx: commands.Context):
-        embed = embed_info("")
+        embed = embed_info(ctx, "")
         bot = self.bot
         uptime = time.time() - bot.start_time
         uptime_str = f"{int(uptime // 3600)} hours, {int((uptime % 3600) // 60)} minutes, and {int(uptime % 60)} seconds"
@@ -141,7 +149,7 @@ class General(commands.Cog):
         user_count = len(bot.users)
 
         # Create an embed to display the bot information
-        embed = discord.Embed(title="Bot Information", color=discord.Color.blue())
+        embed = Embed(title="Bot Information", color=Color.blue())
         embed.add_field(name="Uptime", value=uptime_str, inline=False)
         embed.add_field(name="Guild Count", value=guild_count)
         embed.add_field(name="User Count", value=user_count)
@@ -195,7 +203,7 @@ class General(commands.Cog):
     @app_commands.guild_only()
     async def help(self, i: Interaction):
         await i.response.defer()
-        embed = embed_info(_T(i, "help.desc"))
+        embed = embed_info(i, _T(i, "help.desc"))
         embed.add_field(name=_T(i, "help.antispam.1"), value=_T(i, "help.antispam.2"))
         embed.add_field(
             name=_T(i, "help.linkfilter.1"), value=_T(i, "help.linkfilter.2")
@@ -224,7 +232,7 @@ class General(commands.Cog):
     async def language(self, i: Interaction, language: Choice[str]):
         await i.response.defer()
         await set_guild_data(i.guild_id, "lang", language.value)
-        await i.followup.send(embed=embed_success(_T(i, "config")))
+        await i.followup.send(embed=embed_success(i, _T(i, "config")))
 
     @app_commands.command(
         description="Manage logs channel. If no channel is selected logs will be disabled."
@@ -234,10 +242,10 @@ class General(commands.Cog):
     )
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def logs(self, i: Interaction, channel: discord.TextChannel = None):
+    async def logs(self, i: Interaction, channel: TextChannel = None):
         await i.response.defer()
         await set_guild_data(i.guild_id, "logs", channel.id if channel else 0)
-        await i.followup.send(embed=embed_success(_T(i, "config")))
+        await i.followup.send(embed=embed_success(i, _T(i, "config")))
 
 
 async def setup(bot):

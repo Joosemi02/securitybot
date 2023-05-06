@@ -43,7 +43,7 @@ class Warnings(commands.Cog):
         punishment_msg = _T(
             i, "warnings.punish", member=member.display_name, reason=reason
         )
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     async def send_warnings(self, i: Interaction, member: Member = None):
@@ -83,7 +83,9 @@ class Warnings(commands.Cog):
             warn_id: {"$exists": True},
         }
         if (warn := await db.warns.find_one(filter_)) is None:
-            return await i.followup.send(embed=embed_fail(_T(i, "warning.not_found")))
+            return await i.followup.send(
+                embed=embed_fail(i, _T(i, "warning.not_found"))
+            )
 
         await db.warns.update_one(filter_, {"$unset": {warn_id: ""}})
 
@@ -91,7 +93,7 @@ class Warnings(commands.Cog):
         punishment_msg = _T(
             i, "warnings.unwarn", member=member.display_name, warning=warning
         )
-        await i.followup.send(embed=embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(i, punishment_msg))
         await self.bot.log(i, punishment_msg)
 
 
