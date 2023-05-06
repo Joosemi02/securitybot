@@ -379,6 +379,8 @@ class Security(commands.Cog):
         guild_id = message.guild.id
 
         await self.check_raid(guild_id, author, message)
+        if not get_guild_prefs(guild_id, "linkfilter")["enabled"]:
+            return
         if any(word in self.links for word in message.content.split(" ")):
             with contextlib.suppress(Forbidden):
                 await message.delete()
