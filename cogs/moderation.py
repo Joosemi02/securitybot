@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from discord import Embed, Interaction, Member, Status, TextChannel, User, app_commands
 from discord.app_commands import Choice
-from discord.errors import Forbidden
+from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 
 from constants import EMBED_COLOR, MAX_CLEAR_AMOUNT
@@ -231,9 +231,14 @@ class Moderation(commands.Cog):
     @app_commands.command(description="Unban a user from this server")
     @app_commands.guild_only()
     @app_commands.default_permissions()
-    async def unban(self, i: Interaction, user_id: int):
+    async def unban(self, i: Interaction, user_id: str):
         await i.response.defer()
-        user = await self.bot.fetch_user(user_id)
+        if not user_id.isnumeric():
+            return await i.followup.send("Enter a valid discord User ID")
+        try:
+            user = await self.bot.fetch_user(int(user_id))
+        except NotFound:
+            return await i.followup.send("No user found for this ID")
         await i.guild.unban(user)
         msg = _T(i, "moderation.unban", member=user.name)
         await i.followup.send(embed=embed_success(msg))
