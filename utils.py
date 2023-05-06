@@ -58,7 +58,11 @@ DEFAULT_GUILD_SETTINGS = {
 
 async def set_guild_data(guild_id, field, value):
     await db.guilds.update_one({"_id": guild_id}, {"$set": {field: value}})
-    guilds_cache[guild_id][field] = value
+    fields = field.split(".")
+    current_dict = guilds_cache[guild_id]
+    for subkey in fields[:-1]:
+        current_dict = current_dict[subkey]
+    current_dict[fields[-1]] = value
 
 
 async def set_default_prefs(guild_id: int):
