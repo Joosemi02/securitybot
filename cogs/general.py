@@ -66,7 +66,7 @@ class HelpView(discord.ui.View):
             SelectOption(label="Security commands", value="Security", emoji="🛡️"),
             SelectOption(label="Warning commands", value="Warnings", emoji="🪧"),
             SelectOption(label="General commands", value="General", emoji="🔧"),
-            SelectOption(label="Bot info", value="Main", emoji="ℹ️", default=True),
+            SelectOption(label="Bot info", value="Main", emoji="ℹ️"),
         ],
         placeholder="Help by category",
         max_values=1,
