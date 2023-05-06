@@ -97,7 +97,7 @@ class Moderation(commands.Cog):
             reason=f"for {reason}" if reason else "✅",
         )
 
-        await i.followup.send(embed_success(punishment_msg))
+        await i.followup.send(embed=embed_success(punishment_msg))
         await self.bot.log(i, punishment_msg)
 
     @app_commands.command(description="Bulk delete messages in this channel.")
