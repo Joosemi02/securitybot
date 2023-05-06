@@ -72,6 +72,7 @@ class Moderation(commands.Cog):
             Choice(name="1 hour", value=3600),
             Choice(name="1 day", value=86400),
             Choice(name="1 week", value=604800),
+            Choice(name="Unmute", value=0),
         ]
     )
     async def mute(
