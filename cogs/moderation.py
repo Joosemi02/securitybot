@@ -233,12 +233,14 @@ class Moderation(commands.Cog):
     @app_commands.default_permissions()
     async def unban(self, i: Interaction, user_id: str):
         await i.response.defer()
+        fail_msg = _T(i, "command_fail.user_not_found")
         if not user_id.isnumeric():
-            return await i.followup.send("Enter a valid discord User ID")
+            return await i.followup.send(fail_msg)
         try:
             user = await self.bot.fetch_user(int(user_id))
         except NotFound:
-            return await i.followup.send("No user found for this ID")
+            return await i.followup.send(fail_msg)
+
         await i.guild.unban(user)
         msg = _T(i, "moderation.unban", member=user.name)
         await i.followup.send(embed=embed_success(msg))
