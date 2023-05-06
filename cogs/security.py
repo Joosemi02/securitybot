@@ -433,6 +433,7 @@ class Security(commands.Cog):
     async def antispam(self, i: Interaction, enabled: bool):
         await i.response.defer()
         await self.enable_anti_mentionspam(i, enabled)
+        await set_guild_data(i.guild_id, "antispam.enabled", enabled)
 
         msg = _T(i, f"security.{'on' if enabled else 'off'}", module="Anti Spam")
         view = ConfigurationView(i, self.bot, "antispam")
@@ -453,6 +454,7 @@ class Security(commands.Cog):
             for rule in rules:
                 if rule.trigger.type.value == 3:
                     await rule.delete()
+        await set_guild_data(i.guild_id, "linkfilter.enabled", enabled)
 
         msg = _T(
             i, f"security.{'on' if enabled else 'off'}", module="Malicious link filter"
