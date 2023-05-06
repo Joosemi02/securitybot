@@ -8,19 +8,20 @@ from utils import _T, MyBot, Paginator, db, embed_fail, embed_success
 
 
 async def exec_warn(guild_id: int, user_id: int, reason: str):
-    if (warns := await db.warns.find_one({"_id": user_id, "guild": guild_id})) is None:
+    if (warns := await db.warns.find_one({"user": user_id, "guild": guild_id})) is None:
         warns = {
-            "_id": user_id,
+            "user": user_id,
             "guild": guild_id,
             "0": [reason, datetime.now()],
         }
         await db.warns.insert_one(warns)
     else:
         del warns["_id"]
+        del warns["user"]
         del warns["guild"]
         num = int(list(warns.keys())[-1]) if warns else -1
         await db.warns.update_one(
-            {"_id": user_id, "guild": guild_id},
+            {"user": user_id, "guild": guild_id},
             {"$set": {str(num + 1): [reason, datetime.now()]}},
         )
 
@@ -50,7 +51,7 @@ class Warnings(commands.Cog):
         await i.response.defer()
         if not member:
             member = i.user
-        warns = await db.warns.find_one({"_id": member.id, "guild": i.guild_id})
+        warns = await db.warns.find_one({"user": member.id, "guild": i.guild_id})
         if warns:
             del warns["_id"]
             del warns["guild"]
@@ -78,7 +79,7 @@ class Warnings(commands.Cog):
         await i.response.defer()
         warn_id = str(warn_id)
         filter_ = {
-            "_id": member.id,
+            "user": member.id,
             "guild": i.guild_id,
             warn_id: {"$exists": True},
         }
