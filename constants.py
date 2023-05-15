@@ -1,22 +1,16 @@
-import os
+# SETTINGS
+MONGODB_CONNECTION_URI = ""  # Database connection
+APPLICATION_ID = 00000000  # Bot ID
+TOKEN = ""  # Bot token
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-MONGODB_CONNECTION_URI = os.getenv("MONGO")
-APPLICATION_ID = int(os.getenv("APP"))
-TOKEN = os.getenv("TOKEN")
-
-ADMINS = [int(os.getenv("ID1")), int(os.getenv("ID2"))]
-
-EMBED_COLOR = 0x3498DB
-
-MAX_CLEAR_AMOUNT = 300
-
-BUG_REPORT_CHANNEL = int(os.getenv("BUG"))
-
-LANGUAGES = {"English": "en"}
-
+ADMINS = [12345678, 00000000]  # User ID list
 INVITE_LINK = "https://google.com"
 SUPPORT_SERVER = "https://google.com"
+
+# PREFERENCES
+EMBED_COLOR = 0x000
+MAX_CLEAR_AMOUNT = 100  # Maximum amount of messages to delete with /clear
+BUG_REPORT_CHANNEL = 00000000  # Channel ID
+LANGUAGES = {
+    "English": "en"
+}  # Available languages for the bot, these need to be in the "langs" folder too
