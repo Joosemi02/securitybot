@@ -137,7 +137,8 @@ class General(commands.Cog):
     @commands.command()
     @commands.check(is_admin)
     async def info(self, ctx: commands.Context):
-        embed = embed_info(ctx, "Bot information")
+        embed = embed_info(ctx)
+        embed.title = "Bot information"
         bot = self.bot
 
         # General info
