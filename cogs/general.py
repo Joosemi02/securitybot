@@ -1,9 +1,7 @@
-import subprocess
 import time
 
+import psutil
 from discord import (
-    Color,
-    Embed,
     Guild,
     Interaction,
     Message,
@@ -139,19 +137,18 @@ class General(commands.Cog):
     @commands.command()
     @commands.check(is_admin)
     async def info(self, ctx: commands.Context):
-        embed = embed_info(ctx, "")
+        embed = embed_info(ctx, "Bot information")
         bot = self.bot
+
+        # General info
         uptime = time.time() - bot.start_time
         uptime_str = f"{int(uptime // 3600)} hours, {int((uptime % 3600) // 60)} minutes, and {int(uptime % 60)} seconds"
-
-        # Get general bot information
-        guild_count = len(bot.guilds)
-        user_count = len(bot.users)
-
-        # Create an embed to display the bot information
-        embed = Embed(title="Bot Information", color=Color.blue())
         embed.add_field(name="Uptime", value=uptime_str, inline=False)
+
+        guild_count = len(bot.guilds)
         embed.add_field(name="Guild Count", value=guild_count)
+
+        user_count = len(bot.users)
         embed.add_field(name="User Count", value=user_count)
 
         # Calculate bot response time
@@ -163,33 +160,12 @@ class General(commands.Cog):
             name="Response Time", value=f"{response_time:.2f} ms", inline=False
         )
 
-        # Calculate bot CPU usage
-        cpu_output = subprocess.check_output(
-            "WMIC CPU GET LoadPercentage /Value", shell=True
-        )
-        cpu_usage = int(cpu_output.decode().strip().split("=")[1])
+        # CPU and memory usage
+        cpu_usage = psutil.cpu_percent()
         embed.add_field(name="CPU Usage", value=f"{cpu_usage}%")
 
-        # Get memory usage
-        memory_output = subprocess.check_output(
-            "WMIC OS GET FreePhysicalMemory,TotalVisibleMemorySize /Value", shell=True
-        )
-        memory_free, memory_total = map(
-            int,
-            [
-                s.split("=")[1].strip()
-                for s in memory_output.decode().split("\n")
-                if "FreePhysicalMemory" in s or "TotalVisibleMemorySize" in s
-            ],
-        )
-        memory_used = memory_total - memory_free
-        memory_percent = memory_used / memory_total * 100
-        memory_used_mb = memory_used / 1024
-        memory_total_mb = memory_total / 1024
-        embed.add_field(
-            name="Memory Usage",
-            value=f"{memory_used_mb:.2f}/{memory_total_mb:.2f} MB ({memory_percent:.2f}%)",
-        )
+        memory_usage = psutil.virtual_memory().percent
+        embed.add_field(name="Memory Usage", value=f"{memory_usage}%")
 
         await message.edit(content="", embed=embed)
 
